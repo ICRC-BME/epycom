@@ -4,7 +4,7 @@ stages:
   - test
   - deploy
 
-before_scirpt:
+before_script:
   - pip install wheel
   - python setup.py bdist_wheel
 
