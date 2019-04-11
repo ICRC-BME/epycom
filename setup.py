@@ -23,4 +23,6 @@ setup(name='epycom',
           'Programming Language :: Python :: 3',
           'Operating System :: OS Independent',
           'Topic :: Scientific/Engineering :: Medical Science Apps.'],
+      setup_requires=['pytest_runner'],
+      tests_requires=['pytest'],
       zip_safe=False)
