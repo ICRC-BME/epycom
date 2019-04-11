@@ -6,7 +6,7 @@ stages:
 
 before_script:
   - pip install wheel
-  - python setup.py bdist_wheel
+  - python setup.py install
 
 test_job:
   stage: test
