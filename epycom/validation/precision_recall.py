@@ -1,0 +1,155 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) St. Anne's University Hospital in Brno. International Clinical
+# Research Center, Biomedical Engineering. All Rights Reserved.
+# Distributed under the (new) BSD License. See LICENSE.txt for more info.
+
+
+# Std imports
+
+# Third pary imports
+from scipy.stats import ttest_1samp
+
+# Local imports
+from .util import detection_overlap_check
+
+"""
+NOTE: we could use scikit-learn for this but that would require additional
+modules to be installed. Something to consider for the future. Would simplify
+things a bit. If we incorporate clustering and machine learning we should
+switch to this.
+"""
+
+
+def create_precision_recall_curve(gs_df, dd_df, bn, threshold,
+                                  sec_unit=None, sec_margin=1,
+                                  eval_type='equal'):
+    """
+    Function to create precision recall curve.
+
+    Parameters:
+    -----------
+    gs_df - gold standard detections
+    dd_df - automatically detected detections
+    bn - names of event start stop [start_name, stop_name] (list)
+    threshold - name of the threshold field for evaluation
+    sec_unit - number representing one second of signal - this can
+    significantly imporove the speed of this operation
+    sec_margin - margin for creating subsets of compared data - should be set
+    according to the legnth of compared events (1s for HFO should be enough)
+    eval_type - whether to use bigger than threshold or equal to threshold
+    for thresholding, options are 'equal' or 'bigger'
+
+    Returns:
+    --------
+    precision - list of precision points
+    recall - list of recall points
+    f1_score - list of f1 points
+    """
+
+    # Initiate lists
+    precision = []
+    recall = []
+    f1_score = []
+
+    # Thresholds
+    ths = list(dd_df[threshold].unique())
+    ths.sort()
+
+    # Run through thresholds
+    for th in ths:
+        print('Processing threshold ' + str(th))
+
+        if eval_type == 'equal':
+            sub_dd_df = dd_df[dd_df[threshold] == th]
+        elif eval_type == 'bigger':
+            sub_dd_df = dd_df[dd_df[threshold] >= th]
+        else:
+            raise RuntimeError('Unknown eval_type "' + eval_type + '"')
+
+        if sec_unit:
+            p, r, f = calculate_precision_recall_f_score(gs_df,
+                                                         sub_dd_df,
+                                                         bn,
+                                                         sec_unit,
+                                                         sec_margin)
+        else:
+            p, r, f = calculate_precision_recall_f_score(gs_df,
+                                                         sub_dd_df,
+                                                         bn)
+
+        precision.append(p)
+        recall.append(r)
+        f1_score.append(f)
+
+    return precision, recall, f1_score
+
+
+def calculate_precision_recall_f_score(gs_df, dd_df, bn,
+                                       sec_unit=None, sec_margin=1):
+    """
+    Function to calculate precision and recall values.
+
+    Parameters:
+    -----------
+    gs_df - gold standard detections
+    dd_df - automatically detected detections
+    bn - names of event start stop [start_name, stop_name] (list)
+    sec_unit - number representing one second of signal - this can
+    significantly imporove the speed of this operation
+    sec_margin - margin for creating subsets of compared data - should be set
+    according to the legnth of compared events (1s for HFO should be enough)
+
+    Returns:
+    --------
+    precision - precision of the detection set
+    recall - recall(sensitivity) of the detection set
+    f_score - f1 score
+    """
+
+    # Create column for matching
+    dd_df.loc[:, 'match'] = False
+    gs_df.loc[:, 'match'] = False
+
+    # Initiate true positive
+    TP = 0
+
+    # Start running through gold standards
+    for gs_row in gs_df.iterrows():
+        gs_det = [gs_row[1][bn[0]], gs_row[1][bn[1]]]
+
+        det_flag = False
+        if sec_unit:
+            for dd_row in dd_df[(dd_df[bn[0]] < gs_det[0] + sec_unit * sec_margin) &
+                                (dd_df[bn[0]] > gs_det[0] - sec_unit * sec_margin)].iterrows():
+                dd_det = [dd_row[1][bn[0]], dd_row[1][bn[1]]]
+
+                if detection_overlap_check(gs_det, dd_det):
+                    det_flag = True
+                    break
+        else:
+            for dd_row in dd_df.iterrows():
+                dd_det = [dd_row[1][bn[0]], dd_row[1][bn[1]]]
+
+                if detection_overlap_check(gs_det, dd_det):
+                    det_flag = True
+                    break
+
+        # Mark the detections
+        if det_flag:
+            TP += 1
+            dd_df.loc[dd_row[0], 'match'] = True
+            gs_df.loc[gs_row[0], 'match'] = True
+
+    # We ge number of unmatched detections
+    FN = len(gs_df[gs_df['match'] == False])
+    FP = len(dd_df[dd_df['match'] == False])
+
+    # Calculate precision and recall
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    if precision == 0 and recall == 0:
+        f1_score = 0
+    else:
+        f1_score = 2 * ((precision * recall) / (precision + recall))
+
+    return precision, recall, f1_score
