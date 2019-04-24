@@ -25,7 +25,7 @@ from epycom.bivariate.bivariate_methods import (compute_linear_correlation,
 def test_linear_correlation(get_ieeg_data):
     ch_1 = get_ieeg_data['data'][-2]
     ch_2 = get_ieeg_data['data'][-1]
-    assert (round(compute_linear_correlation(ch_1, ch_2)[0], 5) 
+    assert (round(compute_linear_correlation(ch_1, ch_2)[0], 5)
             == round(0.8148835654651208, 5))
 
 
@@ -48,7 +48,7 @@ def test_spect_multp(get_ieeg_data):
 def test_relative_entropy(get_ieeg_data):
     ch_1 = get_ieeg_data['data'][-2]
     ch_2 = get_ieeg_data['data'][-1]
-    assert (round(compute_relative_entropy(ch_1, ch_2), 5) 
+    assert (round(compute_relative_entropy(ch_1, ch_2), 5)
             == round(1.3346064285349755, 5))
 
 
