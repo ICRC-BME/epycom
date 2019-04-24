@@ -32,19 +32,19 @@ def test_signal_stats(get_ieeg_data):
                      5475600.0]
 
     for exp_stat, stat in zip(expected_vals, stats):
-        assert exp_stat == stat
+        assert round(exp_stat, 5) == round(stat, 5)
 
 
 def test_fac(get_ieeg_data):
     ch = get_ieeg_data['data'][-1]
-    assert compute_fac(ch, 5000) == -0.24878536953248276
+    assert round(compute_fac(ch, 5000), 5) == round(-0.24878536953248276, 5)
 
 
 def test_pac(get_ieeg_data):
     ch = get_ieeg_data['data'][-1]
-    assert compute_pac(ch, 5000) == 0.30791423722563455
+    assert round(compute_pac(ch, 5000), 5) == round(0.30791423722563455, 5)
 
 
 def test_pse(get_ieeg_data):
     ch = get_ieeg_data['data'][-1]
-    assert comute_pse(ch) == 7.639563163873471
+    assert round(comute_pse(ch), 5) == round(7.639563163873471, 5)

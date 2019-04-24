@@ -25,7 +25,8 @@ from epycom.bivariate.bivariate_methods import (compute_linear_correlation,
 def test_linear_correlation(get_ieeg_data):
     ch_1 = get_ieeg_data['data'][-2]
     ch_2 = get_ieeg_data['data'][-1]
-    assert compute_linear_correlation(ch_1, ch_2)[0] == 0.8148835654651208
+    assert (round(compute_linear_correlation(ch_1, ch_2)[0], 5) 
+            == round(0.8148835654651208, 5))
 
 
 def test_xcorr(get_ieeg_data):
@@ -33,7 +34,8 @@ def test_xcorr(get_ieeg_data):
     ch_2 = get_ieeg_data['data'][-1]
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
-    assert compute_xcorr(ch_1, ch_2, lag, lag_step)[0][0] == 0.8173253454623266
+    assert (round(compute_xcorr(ch_1, ch_2, lag, lag_step)[0][0], 5)
+            == round(0.8173253454623266, 5))
 
 
 def test_spect_multp(get_ieeg_data):
@@ -46,13 +48,15 @@ def test_spect_multp(get_ieeg_data):
 def test_relative_entropy(get_ieeg_data):
     ch_1 = get_ieeg_data['data'][-2]
     ch_2 = get_ieeg_data['data'][-1]
-    assert compute_relative_entropy(ch_1, ch_2) == 1.3346064285349755
+    assert (round(compute_relative_entropy(ch_1, ch_2), 5) 
+            == round(1.3346064285349755, 5))
 
 
 def test_phase_sync(get_ieeg_data):
     ch_1 = get_ieeg_data['data'][-2]
     ch_2 = get_ieeg_data['data'][-1]
-    assert compute_phase_sync(ch_1, ch_2) == 0.8328288906252623
+    assert (round(compute_phase_sync(ch_1, ch_2), 5)
+            == round(0.8328288906252623, 5))
 
 
 def test_phase_const(get_ieeg_data):
@@ -60,7 +64,8 @@ def test_phase_const(get_ieeg_data):
     ch_2 = get_ieeg_data['data'][-1]
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
-    assert compute_phase_const(ch_1, ch_2, lag, lag_step) == 0.6394870223157648
+    assert (round(compute_phase_const(ch_1, ch_2, lag, lag_step), 5)
+            == round(0.6394870223157648, 5))
 
 
 def test_pli(get_ieeg_data):
@@ -68,4 +73,5 @@ def test_pli(get_ieeg_data):
     ch_2 = get_ieeg_data['data'][-1]
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
-    assert compute_pli(ch_1, ch_2, lag, lag_step)[0][0] == 0.9316516516516516
+    assert (round(compute_pli(ch_1, ch_2, lag, lag_step)[0][0], 5)
+            == round(0.9316516516516516, 5))
