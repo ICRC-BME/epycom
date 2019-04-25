@@ -53,7 +53,8 @@ def th_tukey(signal, ths):
         Value of the threshold
     """
     ths_value = np.percentile(
-        signal, 75) + ths * (np.percentile(signal, 75) - np.percentile(signal, 25))
+        signal, 75) + ths * (np.percentile(signal, 75)
+                             - np.percentile(signal, 25))
     return ths_value
 
 
