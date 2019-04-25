@@ -3,14 +3,10 @@
 # Research Center, Biomedical Engineering. All Rights Reserved.
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
-import pytest
-
 
 # Std imports
-import pickle
 
 # Third pary imports
-import pytest
 
 # Local imports
 from epycom.bivariate.bivariate_methods import (compute_linear_correlation,
