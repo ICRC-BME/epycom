@@ -20,7 +20,7 @@ from scipy.stats import norm
 # ----- Noise types -----
 
 
-def pinknoise(N):
+def simulate_pinknoise(N):
     """
     Create a pink noise (1/f) with N points.
 
@@ -66,7 +66,7 @@ def pinknoise(N):
     return y
 
 
-def brownnoise(N):
+def simulate_brownnoise(N):
     """
     Create a brown noise (1/f²) with N points.
 
@@ -110,10 +110,9 @@ def brownnoise(N):
         y = y[:-1]
     return y
 
+
 # ----- Artifacts -----
-
-
-def delta(fs=5000, decay_dur=None):
+def simulate_delta(fs=5000, decay_dur=None):
     """
     Delta function with exponential decay.
 
@@ -144,7 +143,7 @@ def delta(fs=5000, decay_dur=None):
     return delta
 
 
-def line_noise(fs=5000, freq=50, numcycles=None):
+def simulate_line_noise(fs=5000, freq=50, numcycles=None):
     """
     Line noise artifact.
 
@@ -173,7 +172,7 @@ def line_noise(fs=5000, freq=50, numcycles=None):
     return y
 
 
-def artifact_spike(fs=5000, dur=None):
+def simulate_artifact_spike(fs=5000, dur=None):
     """
     Artifact like spike (sharp, not gaussian)
 
@@ -202,9 +201,8 @@ def artifact_spike(fs=5000, dur=None):
 
     return y
 
+
 # ----- HFO -----
-
-
 def _wavelet(numcycles, f, fs):
     """
     Create a wavelet
@@ -225,7 +223,7 @@ def _wavelet(numcycles, f, fs):
     time: numpy array
         1D numpy array with the time vector
     """
-    N = float(fs * numcycles) / (f)  # number of points
+    N = int((fs * numcycles) / f)
     time = np.linspace((-numcycles / 2) / float(f),
                        (numcycles / 2) / float(f), N)  # time vector
     std = numcycles / (2 * np.pi * f)  # standard deviation
@@ -234,7 +232,7 @@ def _wavelet(numcycles, f, fs):
     return wave, time
 
 
-def hfo(fs=5000, f=None, numcycles=None):
+def simulate_hfo(fs=5000, freq=None, numcycles=None):
     """
     Create an HFO
 
@@ -242,7 +240,7 @@ def hfo(fs=5000, f=None, numcycles=None):
     ----------
     fs: float
         Sampling rate of the signal (default=5000)
-    f: float
+    freq: float
         Frequency of the artificial HFO (default=None - random frequency betwwen
          80 nad 600 Hz)
     numcycles: int
@@ -257,15 +255,14 @@ def hfo(fs=5000, f=None, numcycles=None):
     """
     if numcycles is None:
         numcycles = np.random.randint(9, 15)
-    if f is None:
-        f = np.random.randint(60, 600)
-    wave, time = _wavelet(numcycles, f, fs)
+    if freq is None:
+        freq = np.random.randint(60, 600)
+    wave, time = _wavelet(numcycles, freq, fs)
     return np.real(wave), time
 
+
 # ----- Spike -----
-
-
-def spike(fs=5000, dur=None):
+def simulate_spike(fs=5000, dur=None):
     """
     Create a simple gausian spike.
 
