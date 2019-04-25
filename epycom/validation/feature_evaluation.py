@@ -10,26 +10,26 @@
 from scipy.stats import ttest_1samp
 
 # Local imports
-from .util import match_detections
+from epycom.validation.util import match_detections
 
 
-def eval_feature_differences(diff_df, bn):
+def eval_feature_differences(diff_df, feature_diff_keys):
     """
-    Function to evaluate feature differences between known values an estimated
+    Function to evaluate feature differences between known values and estimated
     values.
 
-    Parameters:
-    -----------
-    diff_df - dataframe produced by get_feature_differences
-    bn - names of event start stop [start_name, stop_name] (list)
+    Parameters
+    ----------
+    diff_df: pandas.DataFrame
+        Dataframe produced by get_feature_differences
+    feature_diff_keys: list
+        Names columns to evaluate
 
-    Returns:
-    --------
-    stat_dict - dictionary with p values of 1 sample ttests for each feature
+    Returns
+    -------
+    stat_dict: dict
+        Dictionary with p values of 1 sample ttests for each feature
     """
-
-    # Get the feature diffs
-    feature_diff_keys = diff_df.columns.difference(bn)
 
     # Run statistical test on
     stat_dict = {}
@@ -44,17 +44,23 @@ def get_feature_differences(gs_df, dd_df, bn, feature_names):
     """
     Function to get feature differences between known and estimated values.
 
-    Parameters:
-    -----------
-    gs_df - dataframe of events with known features (pandas Dataframe)
-    dd_df - dataframe of events with estimated efatures (pandas DataFrame)
-    bn - names of event start stop [start_name, stop_name] (list)
-    feature_names - dictionary with features as keys and column names as values
+    Parameters
+    ----------
+    gs_df: pandas.DataFrame
+        Dataframe of events with known features
+    dd_df: pandas.DataFrame
+        Dataframe of events with estimated efatures
+    bn: list
+        Names of event start stop [start_name, stop_name]
+    feature_names: dict
+        Dictionary with features as keys and column names as values
 
-    Returns:
-    --------
-    match_df - dataframe with indexes of matched detections
-    N_missed - number of missed artificial detections
+    Returns
+    -------
+    match_df: pandas.DataFrame
+        Dataframe with indexes of matched detections
+    N_missed: int
+        Number of missed gold standard detections
     """
 
     # Match the detections first

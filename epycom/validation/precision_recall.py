@@ -10,7 +10,7 @@
 from scipy.stats import ttest_1samp
 
 # Local imports
-from .util import detection_overlap_check
+from epycom.validation.util import check_detection_overlap
 
 """
 NOTE: we could use scikit-learn for this but that would require additional
@@ -26,24 +26,34 @@ def create_precision_recall_curve(gs_df, dd_df, bn, threshold,
     """
     Function to create precision recall curve.
 
-    Parameters:
-    -----------
-    gs_df - gold standard detections
-    dd_df - automatically detected detections
-    bn - names of event start stop [start_name, stop_name] (list)
-    threshold - name of the threshold field for evaluation
-    sec_unit - number representing one second of signal - this can
-    significantly imporove the speed of this operation
-    sec_margin - margin for creating subsets of compared data - should be set
-    according to the legnth of compared events (1s for HFO should be enough)
-    eval_type - whether to use bigger than threshold or equal to threshold
-    for thresholding, options are 'equal' or 'bigger'
+    Parameters
+    ----------
+    gs_df: pandas.DataFrame
+        Gold standard detections
+    dd_df: pandas.DataFrame
+        Automatically detected detections
+    bn: list
+        Names of event start stop [start_name, stop_name]
+    threshold: str
+        Name of the threshold field for evaluation
+    sec_unit: int
+        Nnumber representing one second of signal - this can
+        significantly imporove the speed of this operation
+    sec_margin: int
+        Margin for creating subsets of compared data - should be set
+        according to the legnth of compared events (1s for HFO should be enough)
+    eval_type: str
+        Whether to use bigger than threshold or equal to threshold
+        for thresholding, options are 'equal' or 'bigger'
 
-    Returns:
-    --------
-    precision - list of precision points
-    recall - list of recall points
-    f1_score - list of f1 points
+    Returns
+    -------
+    precision: list
+        List of precision points
+    recall: list
+        List of recall points
+    f1_score:
+        List of f1 points
     """
 
     # Initiate lists
@@ -60,22 +70,22 @@ def create_precision_recall_curve(gs_df, dd_df, bn, threshold,
         print('Processing threshold ' + str(th))
 
         if eval_type == 'equal':
-            sub_dd_df = dd_df[dd_df[threshold] == th]
+            sub_dd_df = dd_df[dd_df[threshold] == th].copy()
         elif eval_type == 'bigger':
-            sub_dd_df = dd_df[dd_df[threshold] >= th]
+            sub_dd_df = dd_df[dd_df[threshold] >= th].copy()
         else:
             raise RuntimeError('Unknown eval_type "' + eval_type + '"')
 
         if sec_unit:
-            p, r, f = calculate_precision_recall_f_score(gs_df,
-                                                         sub_dd_df,
-                                                         bn,
-                                                         sec_unit,
-                                                         sec_margin)
+            p, r, f = calculate_f_score(gs_df,
+                                        sub_dd_df,
+                                        bn,
+                                        sec_unit,
+                                        sec_margin)
         else:
-            p, r, f = calculate_precision_recall_f_score(gs_df,
-                                                         sub_dd_df,
-                                                         bn)
+            p, r, f = calculate_f_score(gs_df,
+                                        sub_dd_df,
+                                        bn)
 
         precision.append(p)
         recall.append(r)
@@ -84,26 +94,35 @@ def create_precision_recall_curve(gs_df, dd_df, bn, threshold,
     return precision, recall, f1_score
 
 
-def calculate_precision_recall_f_score(gs_df, dd_df, bn,
-                                       sec_unit=None, sec_margin=1):
+def calculate_f_score(gs_df, dd_df, bn, sec_unit=None, sec_margin=1):
     """
     Function to calculate precision and recall values.
 
-    Parameters:
-    -----------
-    gs_df - gold standard detections
-    dd_df - automatically detected detections
-    bn - names of event start stop [start_name, stop_name] (list)
-    sec_unit - number representing one second of signal - this can
-    significantly imporove the speed of this operation
-    sec_margin - margin for creating subsets of compared data - should be set
-    according to the legnth of compared events (1s for HFO should be enough)
+    Parameters
+    ----------
+    gs_df: pandas.DataFrame
+        Gold standard detections
+    dd_df: pandas.DataFrame
+        Automatically detected detections
+    bn: list
+        Names of event start stop [start_name, stop_name]
+    threshold: str
+        Name of the threshold field for evaluation
+    sec_unit: int
+        Nnumber representing one second of signal - this can
+        significantly imporove the speed of this operation
+    sec_margin: int
+        Margin for creating subsets of compared data - should be set
+        according to the legnth of compared events (1s for HFO should be enough)
 
-    Returns:
-    --------
-    precision - precision of the detection set
-    recall - recall(sensitivity) of the detection set
-    f_score - f1 score
+    Returns
+    -------
+    precision: list
+        List of precision points
+    recall: list
+        List of recall points
+    f1_score:
+        List of f1 points
     """
 
     # Create column for matching
@@ -119,18 +138,19 @@ def calculate_precision_recall_f_score(gs_df, dd_df, bn,
 
         det_flag = False
         if sec_unit:
-            for dd_row in dd_df[(dd_df[bn[0]] < gs_det[0] + sec_unit * sec_margin) &
-                                (dd_df[bn[0]] > gs_det[0] - sec_unit * sec_margin)].iterrows():
+            subset = dd_df[(dd_df[bn[0]] < gs_det[0] + sec_unit * sec_margin) &
+                           (dd_df[bn[0]] > gs_det[0] - sec_unit * sec_margin)]
+            for dd_row in subset.iterrows():
                 dd_det = [dd_row[1][bn[0]], dd_row[1][bn[1]]]
 
-                if detection_overlap_check(gs_det, dd_det):
+                if check_detection_overlap(gs_det, dd_det):
                     det_flag = True
                     break
         else:
             for dd_row in dd_df.iterrows():
                 dd_det = [dd_row[1][bn[0]], dd_row[1][bn[1]]]
 
-                if detection_overlap_check(gs_det, dd_det):
+                if check_detection_overlap(gs_det, dd_det):
                     det_flag = True
                     break
 
