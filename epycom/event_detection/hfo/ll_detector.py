@@ -4,13 +4,16 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 
+# Std imports
+
+# Third pary imports
+import numpy as np
 from scipy.signal import butter, filtfilt
 
-from ..feature_extraction import extract_line_lenght
-from ..thresholds import th_std
-from ..io.data_operations import create_output_df
-
-# %% Line-length detector
+# Local imports
+from epycom.utils.signal_transforms import compute_line_lenght
+from epycom.utils.thresholds import th_std
+from epycom.utils.data_operations import create_output_df
 
 
 def detect_hfo_ll(data, fs, low_fc, high_fc,
@@ -41,8 +44,8 @@ def detect_hfo_ll(data, fs, low_fc, high_fc,
     """
 
     # Calculate window values for easier operation
-    samp_win_size = int(window_size * fs)
-    samp_win_inc = int(samp_win_size * window_overlap)
+    samp_win_size = int(np.ceil(window_size * fs))
+    samp_win_inc = int(np.ceil(samp_win_size * window_overlap))
 
     # Create output dataframe
 
@@ -61,15 +64,23 @@ def detect_hfo_ll(data, fs, low_fc, high_fc,
 
     win_start = 0
     win_stop = window_size * fs
-    LL = []
+    n_windows = int(np.ceil((len(data) - samp_win_size) / samp_win_inc)) + 1
+    LL = np.zeros(n_windows)
+    LL_i = 0
     while win_start < len(filt_data):
         if win_stop > len(filt_data):
             win_stop = len(filt_data)
 
-        LL.append(extract_line_lenght(filt_data[int(win_start):int(win_stop)]))
+        LL[LL_i] = compute_line_lenght(filt_data[int(win_start):int(win_stop)],
+                                       samp_win_size)[0]
+
+        if win_stop == len(filt_data):
+            break
 
         win_start += samp_win_inc
         win_stop += samp_win_inc
+
+        LL_i += 1
 
     # Create threshold
     det_th = th_std(LL, threshold)

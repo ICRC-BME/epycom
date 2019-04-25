@@ -3,15 +3,17 @@
 # Research Center, Biomedical Engineering. All Rights Reserved.
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
+
 # Std imports
 
 # Third pary imports
+import numpy as np
 from scipy.signal import butter, filtfilt
 
 # Local imports
-from ..feature_extraction import extract_rms
-from ..thresholds import th_std
-from ..io.data_operations import create_output_df
+from epycom.utils.signal_transforms import compute_rms
+from epycom.utils.thresholds import th_std
+from epycom.utils.data_operations import create_output_df
 
 
 def detect_hfo_rms(data, fs, low_fc, high_fc,
@@ -59,15 +61,23 @@ def detect_hfo_rms(data, fs, low_fc, high_fc,
 
     win_start = 0
     win_stop = window_size * fs
-    RMS = []
+    n_windows = int(np.ceil((len(data) - samp_win_size) / samp_win_inc)) + 1
+    RMS = np.zeros(n_windows)
+    RMS_i = 0
     while win_start < len(filt_data):
         if win_stop > len(filt_data):
             win_stop = len(filt_data)
 
-        RMS.append(extract_rms(filt_data[int(win_start):int(win_stop)]))
+        RMS[RMS_i] = compute_rms(filt_data[int(win_start):int(win_stop)],
+                                 samp_win_size)[0]
+
+        if win_stop == len(filt_data):
+            break
 
         win_start += samp_win_inc
         win_stop += samp_win_inc
+
+        RMS_i += 1
 
     # Create threshold
     det_th = th_std(RMS, threshold)

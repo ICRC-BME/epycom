@@ -11,7 +11,8 @@ import numpy as np
 from scipy.signal import butter, hilbert, filtfilt
 
 # Local imports
-from ..io.data_operations import create_output_df, correct_boundary_dtype
+from epycom.utils.data_operations import create_output_df
+from epycom.validation.util import check_detection_overlap
 
 
 def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
@@ -58,8 +59,10 @@ def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
 
     # Create output dataframe
 
-    df_out = create_output_df(fields=['freq_min', 'freq_max', 'freq_at_max',
-                                      'max_amplitude'])
+    df_out = create_output_df(fields={'freq_min': np.float,
+                                      'freq_max': np.float,
+                                      'freq_at_max': np.float,
+                                      'max_amplitude': np.float})
 
     # Initial values
     win_start = 0
@@ -153,7 +156,6 @@ def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
     if mp > 1:
         work_pool.close()
 
-    correct_boundary_dtype(df_out)
     return df_out
 
 # =============================================================================
@@ -248,13 +250,13 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
         # Get overllaping detects
         for next_det_idx in next_band_idcs[0]:
             #detection = detects[0]
-            if detection_overlap_check([detects[det_idx, 1], detects[det_idx,
+            if check_detection_overlap([detects[det_idx, 1], detects[det_idx,
                                                                      2]],
                                        [detects[next_det_idx, 1],
                                         detects[next_det_idx,
                                                 2]]):
                 # Go up the tree
-                run_detect_branch(detects, next_det_idx, HFO_outline)
+                _run_detect_branch(detects, next_det_idx, HFO_outline)
 
         detects[det_idx, 0] = 0
         return HFO_outline
