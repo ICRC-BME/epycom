@@ -16,7 +16,6 @@ test_job:
 deploy_job:
   stage: deploy
   only:
-    - master
     - tags
   script:
     - pip install twine
