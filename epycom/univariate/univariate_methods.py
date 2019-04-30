@@ -14,7 +14,7 @@ from scipy.signal import butter, hilbert, filtfilt
 # Local imports
 
 
-def compute_signal_stats(sig):
+def compute_signal_stats(sig,**kwargs):
     """
     Function to analyze basic stats of signal
 
@@ -59,7 +59,7 @@ def compute_signal_stats(sig):
     return sig_stats
 
 
-def compute_fac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180):
+def compute_fac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
     """
     Frequency-amplitude coupling
 
@@ -98,7 +98,7 @@ def compute_fac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180):
     return fac
 
 
-def compute_pac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180):
+def compute_pac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
     """
     Phase-amplitude coupling
 
@@ -129,7 +129,7 @@ def compute_pac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180):
     return pac
 
 
-def comute_pse(sig):
+def compute_pse(sig, **kwargs):
     """
     Power spectral entropy
 
