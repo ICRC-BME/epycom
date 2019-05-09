@@ -4,7 +4,6 @@ This is the core of the whole library. The algorithms for feature extraction are
 
 - Univariate
 - Bivariate
-text
 - Event detection
 
 All the algorithms accept raw or filtered data and provide pandas dataframes as their output.
