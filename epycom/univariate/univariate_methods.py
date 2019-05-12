@@ -14,7 +14,7 @@ from scipy.signal import butter, hilbert, filtfilt
 # Local imports
 
 
-def compute_signal_stats(sig,**kwargs):
+def compute_signal_stats(sig, **kwargs):
     """
     Function to analyze basic stats of signal
 
@@ -53,8 +53,9 @@ def compute_signal_stats(sig,**kwargs):
 
     # TODO: why this? isn't everyhing a float before?
     sig_stats = [float(x) for x in [sig_f_pw_std, sig_f_pw_mean,
-                                    sig_f_pw_median, sig_f_pw_max, sig_f_pw_min,
-                                    sig_f_pw_perc25, sig_f_pw_perc75]]
+                                    sig_f_pw_median, sig_f_pw_max,
+                                    sig_f_pw_min, sig_f_pw_perc25,
+                                    sig_f_pw_perc75]]
 
     return sig_stats
 
