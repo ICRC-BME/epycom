@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*def- coding: utf-8 -*-
 # Copyright (c) St. Anne's University Hospital in Brno. International Clinical
 # Research Center, Biomedical Engineering. All Rights Reserved.
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
@@ -13,7 +13,10 @@ import pytest
 from epycom.univariate.univariate_methods import (compute_signal_stats,
                                                   compute_fac,
                                                   compute_pac,
-                                                  comute_pse)
+                                                  compute_pse,
+                                                  compute_lyapunov_exp,
+                                                  compute_hjorth_complexity,
+                                                  compute_hjorth_mobility)
 
 
 def test_signal_stats(create_testing_data):
@@ -44,4 +47,19 @@ def test_pac(create_testing_data):
 
 def test_pse(create_testing_data):
     ch = create_testing_data
-    assert round(comute_pse(ch), 5) == 4.32193
+    assert round(compute_pse(ch), 5) == 4.32193
+
+
+def test_lyap_large(create_testing_data):
+    ch = create_testing_data
+    assert round(compute_lyapunov_exp(ch[0:5000], sample_lag=25), 5) == 5.79481
+
+
+def test_hjorth_mobility(create_testing_data):
+    ch = create_testing_data
+    assert round(compute_hjorth_mobility(ch, 5000), 5) == 3113.28291
+
+
+def test_hjorth_complexity(create_testing_data):
+    ch = create_testing_data
+    assert round(compute_hjorth_complexity(ch, 5000), 5) == 2.27728
