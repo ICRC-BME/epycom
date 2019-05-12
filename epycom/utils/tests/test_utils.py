@@ -11,6 +11,8 @@ import numpy as np
 
 # Local imports
 from epycom.utils.data_operations import create_output_df, add_metadata
+from epycom.univariate.univariate_methods import compute_hjorth_complexity
+from epycom.utils.window_features import window
 from epycom.utils.signal_transforms import (compute_hilbert_envelope,
                                             compute_hilbert_power,
                                             compute_teager_energy,
@@ -95,3 +97,14 @@ def test_th_percentile(create_testing_data):
 def test_th_quian(create_testing_data):
     assert (round(th_quian(create_testing_data, 3), 5)
             == round(6.777704219110832, 5))
+    
+# -------Window features ------
+    
+def test_window(create_testing_data):
+    
+    result_dataframe = window(create_testing_data,
+                              5000, 3400, 200, compute_hjorth_complexity)
+    start_check = int(result_dataframe.event_start[4])
+    end_check = int(result_dataframe.event_stop[4])
+    assert (start_check == 12800 and end_check == 16199)
+    

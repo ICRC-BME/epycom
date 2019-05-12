@@ -58,8 +58,14 @@ def window(data, fvz, wsize, overlap, method):
     for i in np.arange(len(indexes[0])):
         chunks.append((method, data[int(indexes[0][i]):int(indexes[1][i])],
                       indexes[0][i], indexes[1][i], fvz))
-
-    pool = mp.Pool(processes=(mp.cpu_count() - 1))
+    
+    if mp.cpu_count() < 2:
+        processes = 1
+    else:
+        processes = mp.cpu_count() - 1
+            
+    
+    pool = mp.Pool(processes)
 
     results = pool.map(get_results, chunks)
 
