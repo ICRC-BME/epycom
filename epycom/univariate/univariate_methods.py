@@ -62,117 +62,123 @@ def compute_signal_stats(sig, **kwargs):
 
 
 def compute_hjorth_mobility(signal, fs, **kwargs):
-    '''
+    """
     Function to compute Hjorth mobility of time series
 
-    Parameters:
+    Parameters
     ----------
     signal: np.array
-            signal to analyze, time series (array, int, float)
-    fs:     sampling frequency of the time series
+        Signal to analyze, time series (array, int, float)
+    fs: float
+        Sampling frequency of the time series
 
-    Returns:
-    --------
+    Returns
+    -------
     hjorth_mobility: float
 
-    Example:
-    --------
+    Example
+    -------
     hjorth_mobility = compute_hjorth_mobility(data, 5000)
 
-    Note:
-    -----
+    Note
+    ----
     result is frequency dependent
-    '''
+    """
 
     variancex = signal.var(ddof=1)
     # diff signal is one sample shorter
-    variancedx = np.var(np.diff(signal)*fs, ddof=1)
+    variancedx = np.var(np.diff(signal) * fs, ddof=1)
     # compute variance with degree of freedom=1 => The mean is normally
     # calculated as x.sum() / N, where N = len(x). If, however, ddof is
     # specified, the divisor N - ddof is used instead.
 
-    hjorth_mobility = np.sqrt(variancedx/variancex)
+    hjorth_mobility = np.sqrt(variancedx / variancex)
     return hjorth_mobility
 
 
 def compute_hjorth_complexity(signal, fs, **kwargs):
-    '''
+    """
     Function to compute Hjorth complexity of time series
 
-    Parameters:
+    Parameters
     ----------
     signal: np.array
-            signal to analyze, time series (array, int, float)
-    fs:     sampling frequency of the time series
+        Signal to analyze, time series (array, int, float)
+    fs: float
+        Sampling frequency of the time series
 
-    Returns:
-    --------
+    Returns
+    -------
     hjorth_complexity: float
 
-    Example:
-    --------
+    Example
+    -------
     hjorth_complexity = compute_hjorth_complexity(data, 5000)
 
-    Note:
-    -----
+    Note
+    ----
     result is NOT frequency dependent
-    '''
+    """
 
     mob = compute_hjorth_mobility(signal, fs)
     # diff signal is one sample shorter
-    mobd = compute_hjorth_mobility(np.diff(signal)*fs, fs)
-    hjorth_complexity = mobd/mob
+    mobd = compute_hjorth_mobility(np.diff(signal) * fs, fs)
+    hjorth_complexity = mobd / mob
     return hjorth_complexity
 
 # ______Help functions for large Lyapunov exponent computation
 
 
 def _compute_phase_space(data, dimensions, sample_lag):
-    '''
+    """
     Function to create phase space of time series data. This function
     takes value lagged by sample_lag as coordination in new dimension.
 
-    Parameters:
+    Parameters
     ----------
-    data:       np.array
-                signal to analyze, time series (array, int, float)
-    dimensions: number of dimensions to create (int)
-    sample_lag: delay in samples used for coordination extraction (int)
+    data: np.array
+        Signal to analyze, time series (array, int, float)
+    dimensions: int
+        Number of dimensions to create (int)
+    sample_lag: int
+        Delay in samples used for coordination extraction (int)
 
     Returns
     -------
-    space: "dimensions" times dinmensional space
+    space: numpy.ndarray
+        "Dimensions" times dinmensional space
 
     Example
     -------
     space = _compute_phase_space(data,8,5000)
-    '''
+    """
 
     length = np.size(data)
-    space = np.zeros([dimensions, length-((dimensions-1)*sample_lag)])
+    space = np.zeros([dimensions, length - ((dimensions - 1) * sample_lag)])
     for i in range(dimensions):
-        start = i*sample_lag
-        end = length-((dimensions-i-1)*sample_lag)
+        start = i * sample_lag
+        end = length - ((dimensions - i - 1) * sample_lag)
         space[i, :] = data[start:end]
     return space
 
 
 def _compute_acorr_exp(data, fs):
-    '''
+    """
     Function to find point, where autocorrelation drops to 1-1/np.e of it's
     maximum
 
-    Paremeters:
+    Paremeters
     ----------
-    data:   np.array
-            signal to analyze, time series (array, int, float)
-    fs:     sampling frequency
+    data: np.array
+        Signal to analyze, time series (array, int, float)
+    fs: float
+        Sampling frequency
 
-    Returns:
-    --------
+    Returns
+    -------
     point: sample where autocorrelation drops to  1-1/np.e of it's
             maximum
-    '''
+    """
 
     # It is supposed that autocorrelation function of EEG drops to 1-1/e of
     # it's value within one second. This assumption masively reduces
@@ -180,46 +186,51 @@ def _compute_acorr_exp(data, fs):
     data = data[0:fs]
 
     # normalize data
-    data = data-np.mean(data)
+    data = data - np.mean(data)
 
     acorr = np.correlate(data, data, mode='full')
-    acorr = acorr/max(acorr)
-    acorr = acorr[acorr > (1-1/np.e)]
-    point = len(acorr)//2
+    acorr = acorr / max(acorr)
+    acorr = acorr[acorr > (1 - 1 / np.e)]
+    point = len(acorr) // 2
 
     return point
 
 
 def compute_lyapunov_exp(data, fs=5000, dimension=5, sample_lag=None,
                          trajectory_len=20, min_tsep=500, **kwargs):
-    '''
+    """
     Lyapnov largest exponent estimation according to Rosenstein algorythm
 
     With use of some parts from nolds library:
     https://pypi.org/project/nolds
     https://github.com/CSchoel
 
-    Parameters:
-    -----------
-    data:           np.array
-                    signal to analyze, time series (array, int, float)
-    fs:             sampling frequency
-    dimensions:     number of dimensions to compute lyapunov exponent in (int)
-    sample_lag:     delay in samples used for coordination extraction (int)
-    trajectory_len: number of points on divergence trajectory
-    min_tstep:      nearest neighbors have temporal separation greater then
-                    min_tstep
+    Parameters
+    ----------
+    data: np.array
+        Signal to analyze, time series (array, int, float).
+    fs: float
+        Sampling frequency
+    dimensions: int
+        Number of dimensions to compute lyapunov exponent.
+    sample_lag: int
+        Delay in samples used for coordination extraction.
+    trajectory_len: int
+        Number of points on divergence trajectory.
+    min_tstep: int
+        Nearest neighbors have temporal separation greater then min_tstep.
 
-    Returns:
+    Returns
     -------
-    le: estimation of largest Lyapunov coeficient acording to Rosenstein
-        algorithm
+    le: float
+        Estimation of largest Lyapunov coeficient acording to Rosenstein
+        algorithm.
 
-    Example:
-    --------
+    Example
+    -------
     le = compute_lyapunov_exp(data, fs=5000, dimension=5, sample_lag=None,
                          trajectory_len=20, min_tsep=500)
-    '''
+    """
 
     # If sample lag for creating orbit is not set, it will be counted as
     # a point, where autocorrelation function is 1-1/e.
@@ -247,8 +258,8 @@ def compute_lyapunov_exp(data, fs=5000, dimension=5, sample_lag=None,
     min_traj = min_tsep * 2 + 2  # in each row min_tsep + 1 disances are inf
     if ntraj <= 0:
         msg = "Not enough data points. Need {} additional data points to " \
-         + "follow a complete trajectory."
-        raise ValueError(msg.format(-ntraj+1))
+            + "follow a complete trajectory."
+        raise ValueError(msg.format(-ntraj + 1))
     if ntraj < min_traj:
         # not enough data points => there are rows where all values are inf
         assert np.any(np.all(np.isinf(distances[:ntraj, :ntraj]), axis=1))
@@ -292,13 +303,12 @@ def compute_lyapunov_exp(data, fs=5000, dimension=5, sample_lag=None,
         # normal line fitting
         poly = np.polyfit(np.arange(len(div_traj)), div_traj, 1)
 
-    le = poly[0]/(sample_lag/fs)
+    le = poly[0] / (sample_lag / fs)
 
     return le
 
 
 def compute_fac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
-
     """
     Frequency-amplitude coupling
 
