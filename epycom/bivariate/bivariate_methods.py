@@ -104,7 +104,7 @@ def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
     lag_step: int
         step of shift (int)
 
-    Returns:
+    Returns
     -------
     xcorr: list
         maximum linear correlation in shift
@@ -112,7 +112,7 @@ def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
         shift of maximum correlation in samples,
          a value in range <-lag,+lag> (float)
 
-    Example:
+    Example
     -------
     xcorr,tau = compute_xcorr(sig1,sig2,2500,250,200,20)
     """
@@ -209,14 +209,14 @@ def compute_relative_entropy(sig1, sig2):
     relative entropy of sig1 with respect to sig2
     and relative entropy of sig2 with respect to sig1
 
-    Parameters:
+    Parameters
     ----------
     sig1: np.array
         first time series (float)
     sig2: np.array
         second time series (float)
 
-    Returns:
+    Returns
     -------
     ren: float
         max value of relative entropy between sig1 and sig2
