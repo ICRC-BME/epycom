@@ -97,14 +97,16 @@ def test_th_percentile(create_testing_data):
 def test_th_quian(create_testing_data):
     assert (round(th_quian(create_testing_data, 3), 5)
             == round(6.777704219110832, 5))
-    
-# -------Window features ------
-    
+
+
+# -------Window function ------
 def test_window(create_testing_data):
-    
+
+    method_args = [{'args': [5000], 'kwargs': {}}]
     result_dataframe = window(create_testing_data,
-                              5000, 3400, 200, compute_hjorth_complexity)
+                              5000, compute_hjorth_complexity,
+                              method_args=method_args,
+                              wsize=1, overlap=0.2)
     start_check = int(result_dataframe.event_start[4])
     end_check = int(result_dataframe.event_stop[4])
-    assert (start_check == 12800 and end_check == 16199)
-    
+    assert (start_check == 16000 and end_check == 21000)

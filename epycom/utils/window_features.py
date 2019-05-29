@@ -3,82 +3,169 @@
 # Research Center, Biomedical Engineering. All Rights Reserved.
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
+
+# Std imports
+import multiprocessing as mp
+import warnings
+
+# Third pary imports
 import pandas as pd
 import numpy as np
-import multiprocessing as mp
+
+# Local imports
 
 
-def get_results(inputs):
-    '''
-    Function for multiprocessing
-    '''
-    method, chunk, event_start, event_stop, fvz = inputs
-    cc = method(chunk, fvz)
-    apendix = pd.DataFrame([[cc, event_start, event_stop]],
-                           columns=['value', 'event_start', 'event_stop'])
+def _get_results(inputs):
+    """Function for multiprocessing"""
 
-    return apendix
-
-
-def window(data, fvz, wsize, overlap, method):
-
-    """   function using sliding window for computing univariate features
-
-    inputs:
-        data - float64
-        wsize - window size in samples
-        shift in samples
-        method - method to be computed in the window
-
-    output
-        feature signal
+    method, chunk, args, kwargs = inputs
+    if data.ndim > 1:
+        return np.array(method(chunk[0],
+                               chunk[1],
+                               *args, **kwargs))
+    else:
+        return np.array(method(chunk, *args, **kwargs))
 
 
-    TODO
-        option to choose multiprocessing
-        implement Pool.array
+def window(data, fs, method, method_args=None, wsize=1, overlap=0,
+           n_cores=None):
+    """
+    Function using sliding window for computing features.
 
+    Parameters
+    ----------
+    data: numpy.ndarray
+        Data to analyze.
+    fs: float
+        Sampling frequency.
+    method: object | list
+        Method or list of methods for data processing. Optimized for epycom
+        methods.
+    method_args: dict | list
+        Dictionary or list of dictionaries with arguments and keyword arguments
+         for selected methods.
+    wsize: float
+        Sliding window size in seconds. Default=1
+    overlap: float
+        Fraction of the window overlap <0, 1>. Default=0
+    n_cores: None | int
+        Number of cores to use in multiprocessing. When None, multiprocessing
+        is not used. Default=None
 
+    Returns
+    -------
+    feature_dataframe: pandas.DataFrame
+        Dataframe with the results of precessing.
 
-        go through PEP8 standard
-        go through numpy docstrings
+    Example
+    -------
+    Example of providing multiple methods with specified arguments.
+
+    >>> method = [method_a, method_b]
+    >>> method_args = [{'args': [m1arg_1, m1arg_2],
+                        'kwargs': {'m1kw_1': val_1, 'm1kw_2': val_2}},
+                       {'args': [m2arg_1, m2arg2],
+                        'kwargs': {'m2kw_1': val_1, 'm2kw_2': val_2}}]
+    >>> results = window(data, fs, method, method_args)
 
     """
 
-    arguments = locals()
+    data = np.squeeze(data)
 
-    k = int(np.floor((np.size(data)-wsize)/(wsize-overlap))+1)
-    results = pd.DataFrame(columns=['value', 'event_start', 'event_stop'])
-    indexes = [np.arange(k)*wsize-np.arange(k)*overlap,
-               (np.arange(k)*wsize+wsize-1)-np.arange(k)*overlap]
-    results['event_start'] = indexes[0]
-    results['event_stop'] = indexes[1]
-
-    chunks = list()
-    for i in np.arange(len(indexes[0])):
-        chunks.append((method, data[int(indexes[0][i]):int(indexes[1][i])],
-                      indexes[0][i], indexes[1][i], fvz))
-    
-    if mp.cpu_count() < 2:
-        processes = 1
+    if isinstance(method, object) and not isinstance(method, list):
+        method = [method]
+        was_list = False
     else:
-        processes = mp.cpu_count() - 1
+        was_list = True
+
+    wsamp = wsize * fs
+    overlapsamp = wsamp * overlap
+
+    k = int(np.floor((np.max(data.shape) - wsamp) / (wsamp - overlapsamp)) + 1)
+    indexes = np.zeros([2, k])
+    indexes[0] = np.arange(k) * wsamp - np.arange(k) * overlapsamp
+    indexes[1] = indexes[0] + wsamp
+    indexes = indexes.astype(np.int32)
+
+    if n_cores is None or mp.cpu_count() < 2:
+        method_results = []
+        for mi, m in enumerate(method):
+            results_df = pd.DataFrame(columns=['event_start', 'event_stop'])
+            results_df['event_start'] = indexes[0]
+            results_df['event_stop'] = indexes[1]
             
-    
-    pool = mp.Pool(processes)
+            # Construct method arguments
+            if method_args is not None:
+                if method_args[mi] is not None:
+                    args = method_args[mi]['args']
+                    kwargs = method_args[mi]['kwargs']
+                else:
+                    args = []
+                    kwargs = {}
+            else:
+                args = []
+                kwargs = {}
+            
+            for ci, idx in enumerate(indexes.T):
+                # At the first run of the method inspect the results and
+                # constructcolumns
+                if data.ndim > 1:
+                    vals = m(data[0, idx[0]: idx[1]],
+                             data[1, idx[0]: idx[1]],
+                             *args, **kwargs)
+                else:
+                    vals = m(data[idx[0]: idx[1]], *args, **kwargs)
+                if isinstance(vals, (float, int)):
+                    results_df.loc[ci, 'value'] = vals
+                elif isinstance(vals, (list, tuple)):
+                    for vi, val in enumerate(vals): 
+                        results_df.loc[ci, 'value_'+str(vi)] = vals[vi]
+                
+            method_results.append(results_df)
+            
+    else:
+        if n_cores > mp.cpu_count():
+            n_cores = mp.cpu_count()
+            warnings.warn(f"Maximum number o cores is {mp.cpu_count()}",
+                          RuntimeWarning)
+        pool = mp.Pool(n_cores)
+        
+        method_results = []
+        for mi, m in enumerate(method):
+            results_df = pd.DataFrame(columns=['event_start', 'event_stop'])
+            results_df['event_start'] = indexes[0]
+            results_df['event_stop'] = indexes[1]
+            
+            # Construct method arguments
+            if method_args is not None:
+                if method_args[mi] is not None:
+                    args = method_args[mi]['args']
+                    kwargs = method_args[mi]['kwargs']
+                else:
+                    args = []
+                    kwargs = {}
+            else:
+                args = []
+                kwargs = {}
+            
+            chunks = []
+            for idx in indexes.T:
+                if data.ndim > 1:
+                    chunks.append((m, data[:, idx[0]: idx[1]], args, kwargs))
+                else:
+                    chunks.append((m, data[idx[0]: idx[1]], args, kwargs))
+            
+            results = np.array(pool.map(_get_results, chunks))
+            
+            if results.ndim > 1:
+                for i in range(results.shape[1]):
+                    results_df['value_'+str(i)] = results[:, i]
+            else:
+                results_df['value'] = results
+                    
+            method_results.append(results_df)
 
-    results = pool.map(get_results, chunks)
-
-    results_df = pd.concat(results, ignore_index=True)
-
-    return results_df
-
-
-# =============================================================================
-#     for i in list(range(0,k)):
-#         cc=method(data[(wsize-overlap)*i:(wsize-overlap)*i+wsize],fvz)
-#         apendix=pd.DataFrame([[cc, (wsize-overlap)*i,
-#                (wsize-overlap)*i+wsize]],
-#                 columns=['value', 'event_start', 'event_stop'])
-#         results=results.append(apendix, ignore_index=True, sort=False)
-# =============================================================================
+    if was_list:
+        return method_results
+    else:
+        return method_results[0]
