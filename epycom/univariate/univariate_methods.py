@@ -41,7 +41,7 @@ def compute_signal_stats(sig, **kwargs):
     """
 
     # signal power
-    sig = sig**2
+    sig = sig.astype(np.float)**2
 
     # compute signal power statistics
     sig_f_pw_std = sig.std()
@@ -52,11 +52,8 @@ def compute_signal_stats(sig, **kwargs):
     sig_f_pw_perc25 = np.percentile(sig, 25)
     sig_f_pw_perc75 = np.percentile(sig, 75)
 
-    # TODO: why this? isn't everyhing a float before?
-    sig_stats = [float(x) for x in [sig_f_pw_std, sig_f_pw_mean,
-                                    sig_f_pw_median, sig_f_pw_max,
-                                    sig_f_pw_min, sig_f_pw_perc25,
-                                    sig_f_pw_perc75]]
+    sig_stats = [sig_f_pw_std, sig_f_pw_mean, sig_f_pw_median, sig_f_pw_max,
+                 sig_f_pw_min, sig_f_pw_perc25, sig_f_pw_perc75]
 
     return sig_stats
 
