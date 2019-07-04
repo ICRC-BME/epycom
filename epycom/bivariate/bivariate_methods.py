@@ -15,13 +15,16 @@ from scipy.stats import entropy
 # Local imports
 
 
-def compute_linear_correlation(sig1, sig2, win=0, win_step=0):
+def compute_lincorr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0):
     """
-    Linear correlation (Pearson's coefficient), zero lag.
+    Linear correlation (Pearson's coefficient) between two time series
+    
+    When win and win_step is not 0, calculates evolution of correlation
+    
+    When win>len(sig) or win<=0, calculates only one corr coef
 
-    Calculates correlation between two time series
-    when win and win_step is assigned, calculates evolution of correlation
-    when win>len(sig) or win<=0, calculates only one corr coef
+    When lag and lag_step is not 0, shifts the sig2 from negative
+    to positive lag and takes the max correlation (best fit)
 
     Parameters
     ----------
@@ -29,92 +32,28 @@ def compute_linear_correlation(sig1, sig2, win=0, win_step=0):
         first time series (int, float)
     sig2: np.array
         second time series (int, float)
-    win: int
-        width of correlation win in samples (default=0)
-    win_step: int
-        step of win in samples (default=0
-
-    Returns
-    -------
-    lincorr: list
-        calculated correlation coeficients
-
-    Example
-    -------
-    to calculate evolution of correlation (multiple steps of corr window):
-    lincorr = compute_linear_correlation(sig1, sig2, 2500, 250)
-
-    to calculate overall correlation (one win step):
-    lincorr = compute_linear_correlation(sig1, sig2)
-    """
-
-    # TODO: this function should return numpy array or only one value
-
-    if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
-
-    if win > len(sig1) or win <= 0:
-        win = len(sig1)
-
-    if win_step <= 0:
-        win_step = 1
-
-    nstep = int((len(sig1) - win) / win_step)
-
-    if nstep <= 0:
-        nstep = 1
-
-    lincorr = []
-    for i in range(0, nstep):
-        ind1 = i * win_step
-        ind2 = ind1 + win
-        if ind2 <= len(sig1):
-            sig1_w = sig1[ind1:ind2]
-            sig2_w = sig2[ind1:ind2]
-            corr_val = np.corrcoef(sig1_w, sig2_w)
-            lincorr.append(corr_val[0][1])
-
-    #lincorr = np.median(lincorr)
-
-    return lincorr
-
-
-def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
-    """
-    linear cross-correlation (max Pearson's coefficient with lag)
-    between two time series
-
-    shifts the sig2 from negative to positive lag:
-    tau<0: sig2 -> sig1
-    tau>0: sig1 -> sig2
-
-    Parameters
-    ----------
-    sig1: np.array
-        first time series (int, float)
-    sig2: np.array
-        second time series (int, float)
-    winL int
-        width of correlation win in samples
-    win_step: int
-        step of win in samples
     lag: int
         negative and positive shift of time series in samples
     lag_step: int
         step of shift (int)
+    win: int
+        width of correlation win in samples
+    win_step: int
+        step of win in samples
 
     Returns
     -------
-    xcorr: list
+    lincorr: list
         maximum linear correlation in shift
     tau: float
-        shift of maximum correlation in samples,
-         a value in range <-lag,+lag> (float)
+        shift of maximum correlation in samples, 
+        value in range <-lag,+lag> (float)
+        tau<0: sig2 -> sig1
+        tau>0: sig1 -> sig2
 
     Example
     -------
-    xcorr,tau = compute_xcorr(sig1,sig2,2500,250,200,20)
+    lincorr,tau = compute_lincorr(sig1,sig2,200,20,2500,250)
     """
 
     # TODO: do not use lists - use numpy instead
@@ -124,17 +63,20 @@ def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)
+        win_step = 1
 
     if win_step <= 0:
         win_step = 1
 
     nstep = int((len(sig1) - win) / win_step)
-    nstep_lag = int(lag * 2 / lag_step)
-
     if nstep <= 0:
         nstep = 1
+    
+    if lag == 0:
+        lag_step = 1
+    nstep_lag = int(lag * 2 / lag_step)
 
-    xcorr = []
+    max_corr = []
     tau = []
     for i in range(0, nstep):
         ind1 = i * win_step
@@ -158,9 +100,9 @@ def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
             tau_ind = lincorr.index(max(lincorr))
             tau.append(tau_ind * lag_step - lag)
-            xcorr.append(np.max(lincorr))
+            max_corr.append(np.max(lincorr))
 
-    return xcorr, tau
+    return max_corr, tau
 
 
 def compute_spect_multp(sig1, sig2):
