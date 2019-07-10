@@ -35,7 +35,7 @@ def compute_lincorr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0):
     lag: int
         negative and positive shift of time series in samples
     lag_step: int
-        step of shift (int)
+        step of shift
     win: int
         width of correlation win in samples
     win_step: int
@@ -126,7 +126,7 @@ def compute_spect_multp(sig1, sig2):
 
     Example
     -------
-    signal = spect_multp(sig1, sig2)
+    mspect = spect_multp(sig1, sig2)
     """
 
     if len(sig1) != len(sig2):
@@ -191,7 +191,7 @@ def compute_phase_sync(sig1, sig2):
     """
     Calculation of phase synchronization using Hilbert transf. 
     {Quiroga et al. 2008} sensitive to phases, irrespective of the amplitude
-     and phase shift pre-filtering of the signals is necessary
+    and phase shift, pre-filtering of the signals is necessary
 
     Parameters
     ----------
@@ -241,6 +241,10 @@ def compute_phase_const(sig1, sig2, lag, lag_step):
         first time series (float)
     sig2: np.array
         second time series (float)
+    lag: int
+        negative and positive shift of time series in samples
+    lag_step: int
+        step of shift in samples
 
     Returns
     -------
@@ -250,10 +254,8 @@ def compute_phase_const(sig1, sig2, lag, lag_step):
 
     Example
     -------
-    phsc = compute_phase_const(sig1, sig2)
+    phsc = compute_phase_const(sig1, sig2, 500, 100)
     """
-
-    # TODO: example is not correct - needs lag and lag_step
 
     if len(sig1) != len(sig2):
         print('different length of signals!')
@@ -299,6 +301,14 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
         first time series (float)
     sig2: np.array
         second time series (float)
+    lag: int
+        negative and positive shift of time series in samples
+    lag_step: int
+        step of shift in samples
+    win: int
+        width of correlation win in samples
+    win_step: int
+        step of win in samples
 
     Returns
     -------
@@ -309,10 +319,9 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
     Example
     -------
-    pli, tau = compute_pli(sig1,sig2)
+    pli, tau = compute_pli(sig1,sig2,lag=500,lag_step=50)
     """
 
-    # TODO: example is not correct
     # TODO: print out warnings if conditions are met for warnings in doc string
 
     if len(sig1) != len(sig2):
@@ -371,7 +380,7 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
 def compute_coherence(sig1, sig2, fs, fband, lag=0, lag_step=0, win=0, win_step=0, fft_win=1):
     """
-    Magnitude squared coherence between two time series
+    Magnitude squared coherence between two time series (raw, not filtered signals)
     
     When win and win_step is not 0, calculates evolution of coherence
     
@@ -389,11 +398,11 @@ def compute_coherence(sig1, sig2, fs, fband, lag=0, lag_step=0, win=0, win_step=
     fs: int, float
         sampling frequency in Hz
     fband: list
-        frequency range (float)
+        frequency range in Hz (float)
     lag: int
         negative and positive shift of time series in samples
     lag_step: int
-        step of shift
+        step of shift in samples
     win: int
         width of correlation win in samples
     win_step: int
