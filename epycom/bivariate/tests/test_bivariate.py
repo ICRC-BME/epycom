@@ -9,8 +9,7 @@
 # Third pary imports
 
 # Local imports
-from epycom.bivariate.bivariate_methods import (compute_linear_correlation,
-                                                compute_xcorr,
+from epycom.bivariate.bivariate_methods import (compute_lincorr,
                                                 compute_spect_multp,
                                                 compute_relative_entropy,
                                                 compute_phase_sync,
@@ -18,20 +17,11 @@ from epycom.bivariate.bivariate_methods import (compute_linear_correlation,
                                                 compute_pli)
 
 
-def test_linear_correlation(create_testing_data):
+def test_lincorr(create_testing_data):
     ch_1 = create_testing_data[0]
     ch_2 = create_testing_data[1]
-    assert (round(compute_linear_correlation(ch_1, ch_2)[0], 5)
+    assert (round(compute_lincorr(ch_1, ch_2)[0], 5)
             == 0)
-
-
-def test_xcorr(create_testing_data):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
-    lag = int((5000 / 100) / 2)
-    lag_step = int(lag / 10)
-    assert (round(compute_xcorr(ch_1, ch_2, lag, lag_step)[0][0], 5)
-            == 0.37889)
 
 
 def test_spect_multp(create_testing_data):
