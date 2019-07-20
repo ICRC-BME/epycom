@@ -20,7 +20,7 @@ from epycom.bivariate.bivariate_methods import (compute_lincorr,
 def test_lincorr(create_testing_data):
     ch_1 = create_testing_data[0]
     ch_2 = create_testing_data[1]
-    assert (round(compute_lincorr(ch_1, ch_2)[0], 5)
+    assert (round(compute_lincorr(ch_1, ch_2)[0][0], 5)
             == 0)
 
 
