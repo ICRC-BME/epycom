@@ -95,8 +95,8 @@ venv.bak/
 .spyproject
 
 # Sublime project settings
-.sublime-workspace
-.sublime-project
+epycom.sublime-workspace
+epycom.sublime-project
 
 # Rope project settings
 .ropeproject
@@ -107,12 +107,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# personal resources
-.recources/
-
 # pytest stuff
 .pytest_cache
 
-# epycom specific
-iconic_set/
-doc/
+# sphinx
+_build
+_static
+_templates

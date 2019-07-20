@@ -9,19 +9,22 @@
 # Third pary imports
 import numpy as np
 from numpy import angle, mean, sqrt
-from scipy.signal import hilbert
+from scipy.signal import hilbert, coherence
 from scipy.stats import entropy
 
 # Local imports
 
 
-def compute_linear_correlation(sig1, sig2, win=0, win_step=0):
+def compute_lincorr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0):
     """
-    Linear correlation (Pearson's coefficient), zero lag.
+    Linear correlation (Pearson's coefficient) between two time series
+    
+    When win and win_step is not 0, calculates evolution of correlation
+    
+    When win>len(sig) or win<=0, calculates only one corr coef
 
-    Calculates correlation between two time series
-    when win and win_step is assigned, calculates evolution of correlation
-    when win>len(sig) or win<=0, calculates only one corr coef
+    When lag and lag_step is not 0, shifts the sig2 from negative
+    to positive lag and takes the max correlation (best fit)
 
     Parameters
     ----------
@@ -29,92 +32,28 @@ def compute_linear_correlation(sig1, sig2, win=0, win_step=0):
         first time series (int, float)
     sig2: np.array
         second time series (int, float)
+    lag: int
+        negative and positive shift of time series in samples
+    lag_step: int
+        step of shift
     win: int
-        width of correlation win in samples (default=0)
+        width of correlation win in samples
     win_step: int
-        step of win in samples (default=0
+        step of win in samples
 
     Returns
     -------
     lincorr: list
-        calculated correlation coeficients
+        maximum linear correlation in shift
+    tau: float
+        shift of maximum correlation in samples, 
+        value in range <-lag,+lag> (float)
+        tau<0: sig2 -> sig1
+        tau>0: sig1 -> sig2
 
     Example
     -------
-    to calculate evolution of correlation (multiple steps of corr window):
-    lincorr = compute_linear_correlation(sig1, sig2, 2500, 250)
-
-    to calculate overall correlation (one win step):
-    lincorr = compute_linear_correlation(sig1, sig2)
-    """
-
-    # TODO: this function should return numpy array or only one value
-
-    if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
-
-    if win > len(sig1) or win <= 0:
-        win = len(sig1)
-
-    if win_step <= 0:
-        win_step = 1
-
-    nstep = int((len(sig1) - win) / win_step)
-
-    if nstep <= 0:
-        nstep = 1
-
-    lincorr = []
-    for i in range(0, nstep):
-        ind1 = i * win_step
-        ind2 = ind1 + win
-        if ind2 <= len(sig1):
-            sig1_w = sig1[ind1:ind2]
-            sig2_w = sig2[ind1:ind2]
-            corr_val = np.corrcoef(sig1_w, sig2_w)
-            lincorr.append(corr_val[0][1])
-
-    #lincorr = np.median(lincorr)
-
-    return lincorr
-
-
-def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
-    """
-    linear cross-correlation (max Pearson's coefficient with lag)
-    between two time series
-
-    shifts the sig2 from negative to positive lag:
-    tau<0: sig2 -> sig1
-    tau>0: sig1 -> sig2
-
-    Parameters
-    ----------
-    sig1: np.array
-        first time series (int, float)
-    sig2: np.array
-        second time series (int, float)
-    winL int
-        width of correlation win in samples
-    win_step: int
-        step of win in samples
-    lag: int
-        negative and positive shift of time series in samples
-    lag_step: int
-        step of shift (int)
-
-    Returns:
-    -------
-    xcorr: list
-        maximum linear correlation in shift
-    tau: float
-        shift of maximum correlation in samples,
-         a value in range <-lag,+lag> (float)
-
-    Example:
-    -------
-    xcorr,tau = compute_xcorr(sig1,sig2,2500,250,200,20)
+    lincorr,tau = compute_lincorr(sig1,sig2,200,20,2500,250)
     """
 
     # TODO: do not use lists - use numpy instead
@@ -124,17 +63,20 @@ def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)
+        win_step = 1
 
     if win_step <= 0:
         win_step = 1
 
     nstep = int((len(sig1) - win) / win_step)
-    nstep_lag = int(lag * 2 / lag_step)
-
     if nstep <= 0:
         nstep = 1
+    
+    if lag == 0:
+        lag_step = 1
+    nstep_lag = int(lag * 2 / lag_step)
 
-    xcorr = []
+    max_corr = []
     tau = []
     for i in range(0, nstep):
         ind1 = i * win_step
@@ -158,9 +100,9 @@ def compute_xcorr(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
             tau_ind = lincorr.index(max(lincorr))
             tau.append(tau_ind * lag_step - lag)
-            xcorr.append(np.max(lincorr))
+            max_corr.append(np.max(lincorr))
 
-    return xcorr, tau
+    return max_corr, tau
 
 
 def compute_spect_multp(sig1, sig2):
@@ -184,7 +126,7 @@ def compute_spect_multp(sig1, sig2):
 
     Example
     -------
-    signal = spect_multp(sig1, sig2)
+    mspect = spect_multp(sig1, sig2)
     """
 
     if len(sig1) != len(sig2):
@@ -209,14 +151,14 @@ def compute_relative_entropy(sig1, sig2):
     relative entropy of sig1 with respect to sig2
     and relative entropy of sig2 with respect to sig1
 
-    Parameters:
+    Parameters
     ----------
     sig1: np.array
         first time series (float)
     sig2: np.array
         second time series (float)
 
-    Returns:
+    Returns
     -------
     ren: float
         max value of relative entropy between sig1 and sig2
@@ -249,7 +191,7 @@ def compute_phase_sync(sig1, sig2):
     """
     Calculation of phase synchronization using Hilbert transf. 
     {Quiroga et al. 2008} sensitive to phases, irrespective of the amplitude
-     and phase shift pre-filtering of the signals is necessary
+    and phase shift, pre-filtering of the signals is necessary
 
     Parameters
     ----------
@@ -299,6 +241,10 @@ def compute_phase_const(sig1, sig2, lag, lag_step):
         first time series (float)
     sig2: np.array
         second time series (float)
+    lag: int
+        negative and positive shift of time series in samples
+    lag_step: int
+        step of shift in samples
 
     Returns
     -------
@@ -308,10 +254,8 @@ def compute_phase_const(sig1, sig2, lag, lag_step):
 
     Example
     -------
-    phsc = compute_phase_const(sig1, sig2)
+    phsc = compute_phase_const(sig1, sig2, 500, 100)
     """
-
-    # TODO: example is not correct - needs lag and lag_step
 
     if len(sig1) != len(sig2):
         print('different length of signals!')
@@ -357,6 +301,14 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
         first time series (float)
     sig2: np.array
         second time series (float)
+    lag: int
+        negative and positive shift of time series in samples
+    lag_step: int
+        step of shift in samples
+    win: int
+        width of correlation win in samples
+    win_step: int
+        step of win in samples
 
     Returns
     -------
@@ -367,10 +319,9 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
     Example
     -------
-    pli, tau = compute_pli(sig1,sig2)
+    pli, tau = compute_pli(sig1,sig2,lag=500,lag_step=50)
     """
 
-    # TODO: example is not correct
     # TODO: print out warnings if conditions are met for warnings in doc string
 
     if len(sig1) != len(sig2):
@@ -425,3 +376,104 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
         pli.append(np.max(pli_temp))
 
     return pli, tau
+
+
+def compute_coherence(sig1, sig2, fs, fband, lag=0, lag_step=0, win=0, win_step=0, fft_win=1):
+    """
+    Magnitude squared coherence between two time series (raw, not filtered signals)
+    
+    When win and win_step is not 0, calculates evolution of coherence
+    
+    When win>len(sig) or win<=0, calculates only one coherence value
+
+    When lag and lag_step is not 0, shifts the sig2 from negative
+    to positive lag and takes the max coherence (best fit)
+
+    Parameters
+    ----------
+    sig1: np.array
+        first time series (int, float)
+    sig2: np.array
+        second time series (int, float)
+    fs: int, float
+        sampling frequency in Hz
+    fband: list
+        frequency range in Hz (float)
+    lag: int
+        negative and positive shift of time series in samples
+    lag_step: int
+        step of shift in samples
+    win: int
+        width of correlation win in samples
+    win_step: int
+        step of win in samples
+    fft_win: int
+        length of fft window in sec
+
+    Returns
+    -------
+    max_coh: list
+        maximum coherence in shift
+    tau: float
+        shift of maximum coherence in samples, 
+        value in range <-lag,+lag> (float)
+        tau<0: sig2 -> sig1
+        tau>0: sig1 -> sig2
+
+    Example
+    -------
+    max_coh,tau = compute_coherence(sig1, sig2, fs=5000, fband=[1.0,4.0], lag=0, lag_step=0, win=0, win_step=0, fft_win=1)
+    """
+
+    # TODO: do not use lists - use numpy instead
+    if len(sig1) != len(sig2):
+        print('different length of signals!')
+        return
+
+    if win > len(sig1) or win <= 0:
+        win = len(sig1)
+        win_step = 1
+
+    if win_step <= 0:
+        win_step = 1
+
+    nstep = int((len(sig1) - win) / win_step)
+    if nstep <= 0:
+        nstep = 1
+    
+    if lag == 0:
+        lag_step = 1
+    nstep_lag = int(lag * 2 / lag_step)
+    
+    fft_win = int(fft_win*fs)
+    hz_bins = (fft_win/2)/(fs/2)
+    fc1 = int(fband[0]*hz_bins)
+    fc2 = int(fband[1]*hz_bins)
+
+    max_coh = []
+    tau = []
+    for i in range(0, nstep):
+        ind1 = i * win_step
+        ind2 = ind1 + win
+
+        if ind2 <= len(sig1):
+            sig1_w = sig1[ind1:ind2]
+            sig2_w = sig2[ind1:ind2]
+
+            sig1_wl = sig1_w[lag:len(sig1_w) - lag]
+
+            coh = []
+            for i in range(0, nstep_lag + 1):
+                ind1 = i * lag_step
+                ind2 = ind1 + len(sig1_wl)
+
+                sig2_wl = sig2_w[ind1:ind2]
+
+                f, coh = coherence(sig1_wl, sig2_wl, fs, nperseg=fft_win)
+                coh.append(np.mean(coh[fc1:fc2]))
+
+            tau_ind = coh.index(max(coh))
+            tau.append(tau_ind * lag_step - lag)
+            max_coh.append(np.max(coh))
+
+    return max_coh, tau

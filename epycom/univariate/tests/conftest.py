@@ -4,18 +4,32 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
-import pickle
 
 # Third pary imports
 import pytest
+
+import numpy as np
 
 # Local imports
 
 
 @pytest.fixture(scope="module")
-def get_ieeg_data():
+def create_testing_data():
     """
-    Reads testing data
+    Creates testing data
     """
-    data_dict = pickle.load(open("tests/data/ieeg_data.pkl", "rb"))
-    return data_dict
+
+    freqs = [2.5, 6.0, 10.0, 16.0, 32.5, 67.5, 165.0, 425.0, 800.0, 1500.0]
+
+    fs = 5000
+    n = fs*10
+    data = np.zeros(n)
+    basic_amp = 10
+
+    x = np.arange(n)
+    for freq in freqs:
+        freq_amp = basic_amp / freq
+        y = np.sin(2 * np.pi * freq * x / fs)
+        data += y
+
+    return data

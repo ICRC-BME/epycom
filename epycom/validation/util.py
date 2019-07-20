@@ -16,20 +16,27 @@ def match_detections(gs_df, dd_df, bn, freq_name=None,
     """
     Matches gold standard detections with detector detections.
 
-    Parameters:
-    -----------
-    gs_df - gold standard detections (pandas DataFrame)
-    dd_df - detector detections (pandas DataFrame)
-    bn - names of event start stop [start_name, stop_name] (list)
-    freq_name - name of frequency column (str)
-    sec_unit - number representing one second of signal - this can
-    significantly imporove the speed of this operation
-    sec_margin - margin for creating subsets of compared data - should be set
-    according to the legnth of compared events (1s for HFO should be enough)
+    Parameters
+    ----------
+    gs_df: pandas.DataFrame
+        Gold standard detections
+    dd_df: pandas.DataFrame
+        Detector detections
+    bn: list
+        Names of event start stop [start_name, stop_name]
+    freq_name: str
+        Name of frequency column
+    sec_unit: int
+        Number representing one second of signal - this can
+        significantly imporove the speed of this function
+    sec_margin: int
+        Margin for creating subsets of compared data - should be set
+        according to the legnth of compared events (1s for HFO should be enough)
 
-    Returns:
-    --------
-    match_df - dataframe with matched indeces (pandas DataFrame)
+    Returns
+    -------
+    match_df: pandas.DataFrame
+        Dataframe with matched indeces (pandas DataFrame)
     """
 
     match_df = pd.DataFrame(columns=('gs_index', 'dd_index'))
@@ -41,12 +48,12 @@ def match_detections(gs_df, dd_df, bn, freq_name=None,
             for row_dd in dd_df[(dd_df[bn[0]] < gs[0] + sec_unit * sec_margin) &
                                 (dd_df[bn[0]] > gs[0] - sec_unit * sec_margin)].iterrows():
                 dd = [row_dd[1][bn[0]], row_dd[1][bn[1]]]
-                if detection_overlap_check(gs, dd):
+                if check_detection_overlap(gs, dd):
                     matched_idcs.append(row_dd[0])
         else:
             for row_dd in dd_df.iterrows():
                 dd = [row_dd[1][bn[0]], row_dd[1][bn[1]]]
-                if detection_overlap_check(gs, dd):
+                if check_detection_overlap(gs, dd):
                     matched_idcs.append(row_dd[0])
 
         if len(matched_idcs) == 0:
@@ -68,18 +75,21 @@ def match_detections(gs_df, dd_df, bn, freq_name=None,
     return match_df
 
 
-def detection_overlap_check(gs, dd):
+def check_detection_overlap(gs, dd):
     """
     Evaluates if two detections overlap
 
-    Paramters:
-    ----------
-    gs - gold standard detection [start,stop] (list)
-    dd - detector detection [start,stop] (list)
+    Paramters
+    ---------
+    gs: list
+        Gold standard detection [start,stop]
+    dd: list
+        Detector detection [start,stop]
 
-    Returns:
-    --------
-    overlap - boolean
+    Returns
+    -------
+    overlap: bool
+        Whether two events overlap.
 
     """
 

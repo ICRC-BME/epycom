@@ -3,7 +3,7 @@
 # Research Center, Biomedical Engineering. All Rights Reserved.
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='epycom',
       version='0.0a1',
@@ -13,7 +13,7 @@ setup(name='epycom',
       author='FNUSA-ICRC, BME',
       author_email='jan.cimbalnik@fnusa.cz, jan.cimbalnik@mayo.edu',
       license='BSD 3.0',
-      packages=['epycom'],
+      packages=find_packages(),
       keywords='EEG epilepsy signal processing',
       classifiers=[
           'Development Status :: 2 - Pre-Alpha',
@@ -23,4 +23,6 @@ setup(name='epycom',
           'Programming Language :: Python :: 3',
           'Operating System :: OS Independent',
           'Topic :: Scientific/Engineering :: Medical Science Apps.'],
+      setup_requires=['pytest_runner'],
+      tests_requires=['pytest'],
       zip_safe=False)
