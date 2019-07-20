@@ -27,7 +27,7 @@ def _get_results(inputs):
         return np.array(method(chunk, *args, **kwargs))
 
 
-def window(data, fs, method, method_args=None, wsize=1, overlap=0,
+def window(data, fs, method, method_args=None, wsize=None, overlap=0,
            n_cores=None):
     """
     Function using sliding window for computing features.
@@ -45,7 +45,7 @@ def window(data, fs, method, method_args=None, wsize=1, overlap=0,
         Dictionary or list of dictionaries with arguments and keyword arguments
          for selected methods.
     wsize: float
-        Sliding window size in seconds. Default=1
+        Sliding window size in samples. Default=None -> 1*fs
     overlap: float
         Fraction of the window overlap <0, 1>. Default=0
     n_cores: None | int
@@ -78,13 +78,14 @@ def window(data, fs, method, method_args=None, wsize=1, overlap=0,
     else:
         was_list = True
 
-    wsamp = wsize * fs
-    overlapsamp = wsamp * overlap
+    if wsize is None:
+        wsize = fs
+    overlapsamp = wsize * overlap
 
-    k = int(np.floor((np.max(data.shape) - wsamp) / (wsamp - overlapsamp)) + 1)
+    k = int(np.floor((np.max(data.shape) - wsize) / (wsize - overlapsamp)) + 1)
     indexes = np.zeros([2, k])
-    indexes[0] = np.arange(k) * wsamp - np.arange(k) * overlapsamp
-    indexes[1] = indexes[0] + wsamp
+    indexes[0] = np.arange(k) * wsize - np.arange(k) * overlapsamp
+    indexes[1] = indexes[0] + wsize
     indexes = indexes.astype(np.int32)
 
     if n_cores is None or mp.cpu_count() < 2:

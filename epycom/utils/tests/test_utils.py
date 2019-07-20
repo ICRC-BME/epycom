@@ -106,7 +106,7 @@ def test_window(create_testing_data):
     result_dataframe = window(create_testing_data,
                               5000, compute_hjorth_complexity,
                               method_args=method_args,
-                              wsize=1, overlap=0.2)
+                              wsize=5000, overlap=0.2)
     start_check = int(result_dataframe.event_start[4])
     end_check = int(result_dataframe.event_stop[4])
     assert (start_check == 16000 and end_check == 21000)
