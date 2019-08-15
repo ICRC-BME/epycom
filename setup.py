@@ -24,5 +24,5 @@ setup(name='epycom',
           'Operating System :: OS Independent',
           'Topic :: Scientific/Engineering :: Medical Science Apps.'],
       setup_requires=['pytest_runner'],
-      tests_requires=['pytest'],
+      tests_requires=['pytest', 'pytest-benchmark'],
       zip_safe=False)

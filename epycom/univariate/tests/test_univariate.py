@@ -10,18 +10,18 @@
 import pytest
 
 # Local imports
-from epycom.univariate.univariate_methods import (compute_signal_stats,
-                                                  compute_fac,
-                                                  compute_pac,
-                                                  compute_pse,
-                                                  compute_lyapunov_exp,
-                                                  compute_hjorth_complexity,
-                                                  compute_hjorth_mobility)
+from epycom.univariate import (compute_signal_stats,
+                               compute_fac,
+                               compute_pac,
+                               compute_pse,
+                               compute_lyapunov_exp,
+                               compute_hjorth_complexity,
+                               compute_hjorth_mobility)
 
 
-def test_signal_stats(create_testing_data):
+def test_signal_stats(create_testing_data, benchmark):
     ch = create_testing_data
-    stats = compute_signal_stats(ch)
+    stats = benchmark(compute_signal_stats, ch)
 
     expected_vals = [6.68954,
                      5.0,
@@ -35,31 +35,37 @@ def test_signal_stats(create_testing_data):
         assert round(stat, 5) == exp_stat
 
 
-def test_fac(create_testing_data):
+def test_fac(create_testing_data, benchmark):
     ch = create_testing_data
-    assert round(compute_fac(ch, 5000), 5) == -0.00019
+    res = round(benchmark(compute_fac, ch, 5000), 5)
+    assert res == -0.00019
 
 
-def test_pac(create_testing_data):
+def test_pac(create_testing_data, benchmark):
     ch = create_testing_data
-    assert round(compute_pac(ch, 5000), 5) == 0.01189
+    res = round(benchmark(compute_pac, ch, 5000), 5)
+    assert res == 0.01189
 
 
-def test_pse(create_testing_data):
+def test_pse(create_testing_data, benchmark):
     ch = create_testing_data
-    assert round(compute_pse(ch), 5) == 4.32193
+    res = round(benchmark(compute_pse, ch), 5)
+    assert res == 4.32193
 
 
-def test_lyap_large(create_testing_data):
+def test_lyap_large(create_testing_data, benchmark):
     ch = create_testing_data
-    assert round(compute_lyapunov_exp(ch[0:5000], sample_lag=25), 5) == 5.79481
+    res = round(benchmark(compute_lyapunov_exp, ch[0:5000], sample_lag=25), 5)
+    assert res == 5.79481
 
 
-def test_hjorth_mobility(create_testing_data):
+def test_hjorth_mobility(create_testing_data, benchmark):
     ch = create_testing_data
-    assert round(compute_hjorth_mobility(ch, 5000), 5) == 3113.28291
+    res = round(benchmark(compute_hjorth_mobility, ch, 5000), 5)
+    assert res == 3113.28291
 
 
-def test_hjorth_complexity(create_testing_data):
+def test_hjorth_complexity(create_testing_data, benchmark):
     ch = create_testing_data
-    assert round(compute_hjorth_complexity(ch, 5000), 5) == 2.27728
+    res = round(benchmark(compute_hjorth_complexity, ch, 5000), 5)
+    assert res == 2.27728
