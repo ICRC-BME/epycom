@@ -56,10 +56,11 @@ def compute_lincorr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0):
     lincorr,tau = compute_lincorr(sig1,sig2,200,20,2500,250)
     """
 
-    # TODO: do not use lists - use numpy instead
+    if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
     if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
+        raise RuntimeError(f"Different length of signals!")
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)
@@ -129,9 +130,11 @@ def compute_spect_multp(sig1, sig2):
     mspect = spect_multp(sig1, sig2)
     """
 
+    if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
     if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
+        raise RuntimeError(f"Different length of signals!")
 
     fft_1 = np.fft.rfft(sig1)
     fft_2 = np.fft.rfft(sig2)
@@ -168,9 +171,11 @@ def compute_relative_entropy(sig1, sig2):
     ren12, ren21 = compute_relative_entropy(sig1, sig2)
     """
 
+    if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
     if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
+        raise RuntimeError(f"Different length of signals!")
 
     h1 = np.histogram(sig1, 10)
     h2 = np.histogram(sig2, 10)
@@ -210,9 +215,11 @@ def compute_phase_sync(sig1, sig2):
     phs = compute_phase_sync(sig1, sig2)
     """
 
+    if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
     if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
+        raise RuntimeError(f"Different length of signals!")
 
     sig1_ph = angle(hilbert(sig1))
     sig2_ph = angle(hilbert(sig2))
@@ -257,9 +264,11 @@ def compute_phase_const(sig1, sig2, lag, lag_step):
     phsc = compute_phase_const(sig1, sig2, 500, 100)
     """
 
+    if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
     if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
+        raise RuntimeError(f"Different length of signals!")
 
     nstep = int((len(sig1) - lag) / lag_step)
 
@@ -324,9 +333,11 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
     # TODO: print out warnings if conditions are met for warnings in doc string
 
+    if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
     if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
+        raise RuntimeError(f"Different length of signals!")
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)
@@ -425,10 +436,11 @@ def compute_coherence(sig1, sig2, fs, fband, lag=0, lag_step=0, win=0, win_step=
     max_coh,tau = compute_coherence(sig1, sig2, fs=5000, fband=[1.0,4.0], lag=0, lag_step=0, win=0, win_step=0, fft_win=1)
     """
 
-    # TODO: do not use lists - use numpy instead
+    if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
     if len(sig1) != len(sig2):
-        print('different length of signals!')
-        return
+        raise RuntimeError(f"Different length of signals!")
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)

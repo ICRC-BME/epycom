@@ -40,6 +40,10 @@ def compute_signal_stats(sig, **kwargs):
     sig_stats = compute_signal_stats(sig)
     """
 
+    if type(sig) != np.ndarray:
+        raise TypeError(f"Signals have to be in numpy arrays!")
+
+
     # signal power
     sig = sig.astype(np.float)**2
 
