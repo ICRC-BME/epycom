@@ -14,15 +14,15 @@ from scipy.signal import butter, filtfilt, find_peaks
 # Local imports
 
 
-def detect_spikes(data, fs, stat_window=60, scale=70, std_coeff=4,
-                  through_search=0.05,
-                  det_thresholds={'LS': 700,
-                                  'RS': 700,
-                                  'TAMP': 600,
-                                  'LD': 0.01,
-                                  'RD': 0.01},
-                  filter_spec={'narrow': [20, 50],
-                               'broad': [1, 80]}):
+def detect_spikes_barkmeier(data, fs, stat_window=60, scale=70, std_coeff=4,
+                            through_search=0.05,
+                            det_thresholds={'LS': 700,
+                                            'RS': 700,
+                                            'TAMP': 600,
+                                            'LD': 0.01,
+                                            'RD': 0.01},
+                            filter_spec={'narrow': [20, 50],
+                                         'broad': [1, 80]}):
     """
     Python version of Barkmeier's EEG spike detector. {Barkmeier et al. 2011}
 
