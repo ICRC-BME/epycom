@@ -32,6 +32,8 @@ def detect_hfo_ll(data, fs, low_fc, high_fc,
         Low cut-off frequency
     high_fc: float
         High cut-off frequency
+    threshold: float
+        Number of standard deviations to use as a threshold
     window_size: float
         Sliding window size in seconds
     window_overlap: float
