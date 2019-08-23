@@ -398,8 +398,7 @@ def compute_pse(sig, **kwargs):
     """
 
     ps = np.abs(np.fft.fft(sig))  # power spectrum
-    ps = ps**2
-    ps = ps / len(ps)  # power spectral density
+    ps = ps**2 # power spectral density
     ps = ps / sum(ps)  # normalized to probability density function
 
     pse = -sum(ps * np.log2(ps))  # power spectral entropy
