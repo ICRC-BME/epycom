@@ -13,7 +13,14 @@ from scipy.signal import butter, filtfilt, hilbert
 from scipy.special import gammaincinv
 
 # Local imports
-from epycom.utils.data_operations import create_output_df
+from ...utils.data_operations import create_output_df
+
+from ... import NUMBA_AVAILABLE
+from ...utils.tools import conditional_decorate
+
+# Take care of numba import
+if NUMBA_AVAILABLE:
+    from numba import jit
 
 # %% CS detector
 
@@ -455,7 +462,6 @@ def _inverse_gamma_cdf(p, k, theta, offset):
     x = (x * theta) + offset
 
     return x
-
 
 def _sliding_snr(np_x, bp_x, Fs, wind_secs):
     """

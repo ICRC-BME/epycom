@@ -9,7 +9,6 @@ import multiprocessing as mp
 import warnings
 
 # Third pary imports
-import pandas as pd
 import numpy as np
 
 # Local imports
@@ -19,7 +18,7 @@ def _get_results(inputs):
     """Function for multiprocessing"""
 
     method, chunk, args, kwargs = inputs
-    if data.ndim > 1:
+    if chunk.ndim > 1:
         return np.array(method(chunk[0],
                                chunk[1],
                                *args, **kwargs))
@@ -83,17 +82,16 @@ def window(data, fs, method, method_args=None, wsize=None, overlap=0,
     overlapsamp = wsize * overlap
 
     k = int(np.floor((np.max(data.shape) - wsize) / (wsize - overlapsamp)) + 1)
-    indexes = np.zeros([2, k])
-    indexes[0] = np.arange(k) * wsize - np.arange(k) * overlapsamp
-    indexes[1] = indexes[0] + wsize
+    indexes = np.zeros([k, 2])
+    indexes[:, 0] = np.arange(k) * wsize - np.arange(k) * overlapsamp
+    indexes[:, 1] = indexes[:, 0] + wsize
     indexes = indexes.astype(np.int32)
 
     if n_cores is None or mp.cpu_count() < 2:
         method_results = []
         for mi, m in enumerate(method):
-            results_df = pd.DataFrame(columns=['event_start', 'event_stop'])
-            results_df['event_start'] = indexes[0]
-            results_df['event_stop'] = indexes[1]
+            # Allocate array for results
+            results_arr = np.zeros(indexes.shape[0], object)
             
             # Construct method arguments
             if method_args is not None:
@@ -107,7 +105,7 @@ def window(data, fs, method, method_args=None, wsize=None, overlap=0,
                 args = []
                 kwargs = {}
             
-            for ci, idx in enumerate(indexes.T):
+            for ci, idx in enumerate(indexes):
                 # At the first run of the method inspect the results and
                 # constructcolumns
                 if data.ndim > 1:
@@ -116,26 +114,20 @@ def window(data, fs, method, method_args=None, wsize=None, overlap=0,
                              *args, **kwargs)
                 else:
                     vals = m(data[idx[0]: idx[1]], *args, **kwargs)
-                if isinstance(vals, (float, int)):
-                    results_df.loc[ci, 'value'] = vals
-                elif isinstance(vals, (list, tuple)):
-                    for vi, val in enumerate(vals): 
-                        results_df.loc[ci, 'value_'+str(vi)] = vals[vi]
+                    
+                results_arr[ci] = vals
                 
-            method_results.append(results_df)
+            method_results.append(results_arr)
             
     else:
         if n_cores > mp.cpu_count():
             n_cores = mp.cpu_count()
-            warnings.warn(f"Maximum number o cores is {mp.cpu_count()}",
+            warnings.warn(f"Maximum number of cores is {mp.cpu_count()}",
                           RuntimeWarning)
         pool = mp.Pool(n_cores)
         
         method_results = []
         for mi, m in enumerate(method):
-            results_df = pd.DataFrame(columns=['event_start', 'event_stop'])
-            results_df['event_start'] = indexes[0]
-            results_df['event_stop'] = indexes[1]
             
             # Construct method arguments
             if method_args is not None:
@@ -150,23 +142,19 @@ def window(data, fs, method, method_args=None, wsize=None, overlap=0,
                 kwargs = {}
             
             chunks = []
-            for idx in indexes.T:
+            for idx in indexes:
                 if data.ndim > 1:
                     chunks.append((m, data[:, idx[0]: idx[1]], args, kwargs))
                 else:
                     chunks.append((m, data[idx[0]: idx[1]], args, kwargs))
             
             results = np.array(pool.map(_get_results, chunks))
-            
-            if results.ndim > 1:
-                for i in range(results.shape[1]):
-                    results_df['value_'+str(i)] = results[:, i]
-            else:
-                results_df['value'] = results
                     
-            method_results.append(results_df)
+            method_results.append(results)
+            
+        pool.close()
 
     if was_list:
-        return method_results
+        return indexes, method_results
     else:
-        return method_results[0]
+        return indexes, method_results[0]

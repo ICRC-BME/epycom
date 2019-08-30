@@ -7,15 +7,20 @@
 import pickle
 
 # Third pary imports
-import math
 import numpy as np
 from scipy.signal import butter, hilbert, filtfilt
 from scipy.spatial.distance import pdist, squareform
 
 # Local imports
+from .. import NUMBA_AVAILABLE
+from ..utils.tools import conditional_decorate
 
+# Take care of numba import
+if NUMBA_AVAILABLE:
+    from numba import jit
 
-def compute_signal_stats(sig, **kwargs):
+@conditional_decorate(NUMBA_AVAILABLE, jit(nopython=True, cache=True))
+def compute_signal_stats(sig):
     """
     Function to analyze basic stats of signal
 
@@ -40,24 +45,21 @@ def compute_signal_stats(sig, **kwargs):
     sig_stats = compute_signal_stats(sig)
     """
 
-    if type(sig) != np.ndarray:
-        raise TypeError(f"Signals have to be in numpy arrays!")
-
-
     # signal power
-    sig = sig.astype(np.float)**2
+    sig_power = sig ** 2
 
     # compute signal power statistics
-    sig_f_pw_std = sig.std()
-    sig_f_pw_mean = sig.mean()
-    sig_f_pw_median = np.median(sig)
-    sig_f_pw_max = sig.max()
-    sig_f_pw_min = sig.min()
-    sig_f_pw_perc25 = np.percentile(sig, 25)
-    sig_f_pw_perc75 = np.percentile(sig, 75)
+    sig_f_pw_std = sig_power.std()
+    sig_f_pw_mean = sig_power.mean()
+    sig_f_pw_median = np.median(sig_power)
+    sig_f_pw_max = sig_power.max()
+    sig_f_pw_min = sig_power.min()
+    sig_f_pw_perc25 = np.percentile(sig_power, 25)
+    sig_f_pw_perc75 = np.percentile(sig_power, 75)
 
-    sig_stats = [sig_f_pw_std, sig_f_pw_mean, sig_f_pw_median, sig_f_pw_max,
-                 sig_f_pw_min, sig_f_pw_perc25, sig_f_pw_perc75]
+    sig_stats = np.array([sig_f_pw_std, sig_f_pw_mean, sig_f_pw_median,
+                          sig_f_pw_max, sig_f_pw_min,
+                          sig_f_pw_perc25, sig_f_pw_perc75])
 
     return sig_stats
 
@@ -330,7 +332,7 @@ def compute_fac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
     """
     nsamp = len(sig)
 
-    zpad = 2**(math.ceil(math.log(nsamp, 2)))
+    zpad = 2**(np.ceil(np.log(nsamp, 2)))
     sig_zeros = np.zeros(zpad)
 
     b, a = butter(2, [lfc1 / (fs / 2), hfc1 / (fs / 2)], 'bandpass')
@@ -372,7 +374,7 @@ def compute_pac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
 
     b, a = butter(2, [lfc2 / (fs / 2), hfc2 / (fs / 2)], 'bandpass')
     sig_fh = filtfilt(b, a, sig)
-    sig_a = abs(hilbert(sig_fh))**2
+    sig_a = np.abs(hilbert(sig_fh))**2
 
     pac = np.corrcoef(sig_f_ph, sig_a)[0][1]
 

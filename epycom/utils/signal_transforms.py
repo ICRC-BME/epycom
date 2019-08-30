@@ -11,7 +11,12 @@ import numpy as np
 import scipy.signal as sig
 
 # Local imports
+from .. import NUMBA_AVAILABLE
+from .tools import conditional_decorate
 
+# Take care of numba import
+if NUMBA_AVAILABLE:
+    from numba import jit
 
 def compute_hilbert_envelope(signal):
     """
@@ -114,7 +119,7 @@ def compute_stenergy(signal, window_size=6):
     window = np.ones(window_size) / float(window_size)
     return np.convolve(aux, window, 'same')
 
-
+#@conditional_decorate(NUMBA_AVAILABLE, jit(nopython=True))
 def compute_line_lenght(signal, window_size=6):
     """
     Calcule Short time line leght -
@@ -132,12 +137,12 @@ def compute_line_lenght(signal, window_size=6):
     line_length: numpy array
         Line length transformed signal
     """
-    window_size = int(window_size)
-    aux = np.abs(np.diff(signal))
+    aux = np.abs(np.subtract(signal[1:], signal[:-1]))
     window = np.ones(window_size) / float(window_size)
-    data = np.convolve(aux, window, 'same')
-    data = np.append(data, data[-1])
-    return data
+    data = np.convolve(aux, window)
+    start = int(np.floor(window_size / 2))
+    stop = int(np.ceil(window_size / 2))
+    return data[start:-stop]
 
 
 def compute_stockwell_transform(signal, fs, min_freq, max_freq, f_fs=1,
