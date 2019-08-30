@@ -12,11 +12,10 @@ from scipy.signal import butter, hilbert, filtfilt
 from scipy.spatial.distance import pdist, squareform
 
 # Local imports
-from .. import NUMBA_AVAILABLE
-from ..utils.tools import conditional_jitdecorate
+from ..utils.tools import try_jit_decorate
 
 
-@conditional_jitdecorate(NUMBA_AVAILABLE, {'nopython': True, 'cache': True})
+@try_jit_decorate({'nopython': True, 'cache': True})
 def compute_signal_stats(sig):
     """
     Function to analyze basic stats of signal

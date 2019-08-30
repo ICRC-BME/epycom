@@ -12,7 +12,7 @@ import pandas as pd
 from scipy.signal import butter, filtfilt, find_peaks
 
 # Local imports
-
+from ..utils.tools import try_jit_decorate
 
 def detect_spikes_barkmeier(data, fs, stat_window=60, scale=70, std_coeff=4,
                             through_search=0.05,

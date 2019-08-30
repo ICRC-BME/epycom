@@ -11,8 +11,7 @@ import numpy as np
 import scipy.signal as sig
 
 # Local imports
-from .. import NUMBA_AVAILABLE
-from .tools import conditional_jitdecorate
+from ..utils.tools import try_jit_decorate
 
 
 def compute_hilbert_envelope(signal):
