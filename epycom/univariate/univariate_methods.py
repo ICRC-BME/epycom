@@ -13,13 +13,10 @@ from scipy.spatial.distance import pdist, squareform
 
 # Local imports
 from .. import NUMBA_AVAILABLE
-from ..utils.tools import conditional_decorate
+from ..utils.tools import conditional_jitdecorate
 
-# Take care of numba import
-if NUMBA_AVAILABLE:
-    from numba import jit
 
-@conditional_decorate(NUMBA_AVAILABLE, jit(nopython=True, cache=True))
+@conditional_jitdecorate(NUMBA_AVAILABLE, {'nopython': True, 'cache': True})
 def compute_signal_stats(sig):
     """
     Function to analyze basic stats of signal
@@ -332,7 +329,7 @@ def compute_fac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
     """
     nsamp = len(sig)
 
-    zpad = 2**(np.ceil(np.log(nsamp, 2)))
+    zpad = int(2**(np.ceil(np.log2(nsamp))))
     sig_zeros = np.zeros(zpad)
 
     b, a = butter(2, [lfc1 / (fs / 2), hfc1 / (fs / 2)], 'bandpass')

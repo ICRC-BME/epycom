@@ -14,11 +14,7 @@ from scipy.stats import entropy
 
 # Local imports
 from .. import NUMBA_AVAILABLE
-from ..utils.tools import conditional_decorate
-
-# Take care of numba import
-if NUMBA_AVAILABLE:
-    from numba import jit
+from ..utils.tools import conditional_jitdecorate
 
 
 def compute_lincorr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0):

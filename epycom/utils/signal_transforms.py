@@ -12,11 +12,8 @@ import scipy.signal as sig
 
 # Local imports
 from .. import NUMBA_AVAILABLE
-from .tools import conditional_decorate
+from .tools import conditional_jitdecorate
 
-# Take care of numba import
-if NUMBA_AVAILABLE:
-    from numba import jit
 
 def compute_hilbert_envelope(signal):
     """
@@ -119,7 +116,6 @@ def compute_stenergy(signal, window_size=6):
     window = np.ones(window_size) / float(window_size)
     return np.convolve(aux, window, 'same')
 
-#@conditional_decorate(NUMBA_AVAILABLE, jit(nopython=True))
 def compute_line_lenght(signal, window_size=6):
     """
     Calcule Short time line leght -

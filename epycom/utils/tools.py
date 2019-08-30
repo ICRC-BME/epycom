@@ -9,5 +9,12 @@
 
 # Local imports
 
-def conditional_decorate(condition, decorator):
-    return decorator if condition else lambda x: x
+def conditional_jitdecorate(condition, jit_kwargs):
+	if condition:
+		try:
+			from numba import jit
+			return jit(**jit_kwargs)
+		except ImportError:
+			return lambda x: x
+	else:
+		return lambda x: x

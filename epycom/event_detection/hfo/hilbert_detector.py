@@ -15,11 +15,7 @@ from ...utils.data_operations import create_output_df
 from ...validation.util import check_detection_overlap
 
 from ... import NUMBA_AVAILABLE
-from ...utils.tools import conditional_decorate
-
-# Take care of numba import
-if NUMBA_AVAILABLE:
-    from numba import jit
+from ...utils.tools import conditional_jitdecorate
 
 
 def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,

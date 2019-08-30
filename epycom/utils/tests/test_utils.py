@@ -70,7 +70,7 @@ def test_compute_stenergy(create_testing_data):
 
 def test_compute_line_lenght(create_testing_data):
     assert (round(np.sum(compute_line_lenght(create_testing_data)), 5)
-            == round(58085.86029191726, 5))
+            == round(58084.721256107114, 5))
 
 
 def test_compute_stockwell_transform(create_testing_data):
@@ -103,10 +103,10 @@ def test_th_quian(create_testing_data):
 def test_window(create_testing_data):
 
     method_args = [{'args': [5000], 'kwargs': {}}]
-    result_dataframe = window(create_testing_data,
-                              5000, compute_hjorth_complexity,
-                              method_args=method_args,
-                              wsize=5000, overlap=0.2)
-    start_check = int(result_dataframe.event_start[4])
-    end_check = int(result_dataframe.event_stop[4])
+    idxs, _ = window(create_testing_data,
+                     5000, compute_hjorth_complexity,
+                     method_args=method_args,
+                     wsize=5000, overlap=0.2)
+    start_check = int(idxs[4][0])
+    end_check = int(idxs[4][1])
     assert (start_check == 16000 and end_check == 21000)

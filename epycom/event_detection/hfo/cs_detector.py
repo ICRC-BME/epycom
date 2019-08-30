@@ -16,11 +16,8 @@ from scipy.special import gammaincinv
 from ...utils.data_operations import create_output_df
 
 from ... import NUMBA_AVAILABLE
-from ...utils.tools import conditional_decorate
+from ...utils.tools import conditional_jitdecorate
 
-# Take care of numba import
-if NUMBA_AVAILABLE:
-    from numba import jit
 
 # %% CS detector
 
