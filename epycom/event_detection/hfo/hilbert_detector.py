@@ -14,9 +14,6 @@ from scipy.signal import butter, hilbert, filtfilt
 from ...utils.data_operations import create_output_df
 from ...validation.util import check_detection_overlap
 
-from ..utils.tools import try_jit_decorate
-
-
 
 def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
                        window=10, window_overlap=0,
