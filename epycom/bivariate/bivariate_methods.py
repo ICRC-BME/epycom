@@ -13,7 +13,6 @@ from scipy.signal import hilbert, coherence
 from scipy.stats import entropy
 
 # Local imports
-from ..utils.tools import try_jit_decorate
 
 
 def compute_lincorr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0):
