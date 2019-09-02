@@ -11,7 +11,6 @@ import numpy as np
 from numpy import angle, mean, sqrt
 from scipy.signal import hilbert, coherence
 from scipy.stats import entropy
-
 # Local imports
 
 
@@ -477,3 +476,185 @@ def compute_coherence(sig1, sig2, fs, fband, lag=0, lag_step=0, win=0, win_step=
             max_coh.append(np.max(coh))
 
     return max_coh, tau
+
+
+def _nonlinear_correlation(x, y, bin_size=20):
+    """
+    Nonlinear correlation is computed according to F. L. da Silva
+    and J. P. Pijn.
+    Function calculates dependencies in a way that y = f(x).
+    Function approximates nonlinear correlation and approximation is dependent
+     on number of bins.
+    Result is in interval <0;1>
+
+    Parameters
+    ----------
+    x: int | float
+        variable time series
+    y: int | float
+        function of x time series
+    bin_size: int
+        number of approximated linear segments
+
+    Returns
+    -------
+    nonlinear_coeff: float
+        calculated nonlinear correlation (float)
+
+    Example
+    -------
+    calculate nonlinear correlation in direction y is dependent on x
+    nonlinear_coeff = nonlinear_correlation(x ,y ,30)
+
+    calculate nonlinear correlation in direction x is dependent on y
+    nonlinear_coeff = nonlinear_correlation(y, x, 30)
+    """
+
+    ind = np.argsort(x)
+    x_sort = x[ind]
+    y_sort = y[ind]
+    nsamp = x.size
+
+    x_min = x_sort[0]
+    x_max = x_sort[-1]
+
+    edge = np.linspace(x_min, x_max, bin_size)
+    stepx = (x_max - x_min) / bin_size
+    r = np.zeros((bin_size), dtype=np.float)
+    q = np.copy(r)
+    n_bins = np.zeros((bin_size), dtype=np.int)
+
+    for i in range(1, bin_size):
+        x_bin = x_sort[x_sort <= edge[i]]
+        x_bin_size = x_bin.size
+        n_bins[i - 1] = x_bin_size
+
+        if x_bin.size == 0:
+            q[i - 1] = q[i - 2]
+            r[i - 1] = r[i - 2] + stepx
+        else:
+            q[i - 1] = np.mean(y_sort[0:x_bin_size])
+            r[i - 1] = np.mean(x_sort[0:x_bin_size])
+            x_sort = x_sort[x_bin_size:]
+            y_sort = y_sort[x_bin_size:]
+
+    cumulative_bins = np.append(np.int(0), np.cumsum(n_bins))
+    cumulative_bins = cumulative_bins.astype(np.int, copy=False)
+    ind = ind.astype(np.int, copy=False)
+
+    # computation of regression curve coeff
+    delta_q = q[1:] - q[0:-1]
+    delta_r = r[1:] - r[0:-1]
+
+    delta_r[delta_r == 0] = stepx
+    regression_multiplier = delta_q / delta_r
+    regression_multiplier = np.append(regression_multiplier, regression_multiplier[-1])
+    b = q - regression_multiplier * r
+    func_y = np.zeros((nsamp))
+
+    for i in range(0, bin_size):
+        if cumulative_bins[i] != cumulative_bins[i + 1]:
+            func_y[ind[cumulative_bins[i]: cumulative_bins[i + 1]]] = regression_multiplier[i] * x[ind[cumulative_bins[i]: cumulative_bins[i + 1]]] + b[i]
+
+    yyh = y - func_y  # unexplained part of y
+    varyyh = np.var(yyh)  # unexplained variance
+    vary = np.var(y)  # total variance
+
+    nonlinear_coeff = 1 - (varyyh / vary)
+
+    return nonlinear_coeff
+
+
+def compute_nonlinear_corr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0, bin_size=20):
+    """
+    Nonlinear correlation (defined by Pijn*), with lag
+    calculates nonlinear correlation between two time series
+
+    shifts the sig2 from negative to positive lag:
+    tau<0: sig2 -> sig1
+    tau>0: sig1 -> sig2
+
+    this calculates only dependence sig2 = f(sig1)
+
+    Parameters:
+    ----------
+    sig1: np.array
+        first time series (int, float)
+    sig2: np.array
+        second time series (int, float)
+    lag: int
+        negative and positive shift of time series in samples
+    lag_step: int
+        step of shift
+    win: int
+        width of correlation win in samples
+    win_step: int
+        step of win in samples
+
+    
+    Returns:
+    -------
+    nonlinear_lag: np.ndarray
+        maximum nonlinear correlation in shift (numpy array)
+    tau: np.ndarray
+        shift of maximum correlation in samples, range <-lag,+lag>
+
+    Example:
+    -------
+    dependence:  sig2 = f(sig1)
+    nonlinear_lag,tau = compute_nonlinear_corr(sig1, sig2, 200, 20, 2500,
+                                               250, bin_size=20)
+    dependence: sig1 = f(sig2)
+    nonlinear_lag,tau = compute_nonlinear_corr(sig2, sig1, 200, 20, 2500,
+                                               250, bin_size=20)
+
+    """
+
+    if len(sig1) != len(sig2):
+        print('different length of signals!')
+        return
+
+    if win > len(sig1) or win <= 0:
+        win = len(sig1)
+
+    if win_step <= 0:
+        win_step = 1
+
+    nstep = int((len(sig1) - win) / win_step)
+
+    if nstep <= 0:
+        nstep = 1
+
+    if lag == 0:
+        lag_step = 1
+    nstep_lag = int(lag * 2 / lag_step)
+
+    # return variables
+    max_noncorr = np.empty((nstep))
+    tau = np.empty((nstep))
+    # iterate window over all signal length
+    for i in range(0, nstep):
+        ind1 = i * win_step
+        ind2 = ind1 + win
+
+        if ind2 <= len(sig1):
+            sig1_w = sig1[ind1:ind2]
+            sig2_w = sig2[ind1:ind2]
+
+            sig1_wl = sig1_w[lag:len(sig1_w) - lag]
+            # temporal variable
+            noncorr_lag = np.empty((nstep_lag + 1))
+            # iterate through each lagstep
+            for k in range(0, nstep_lag + 1):
+                ind1 = k * lag_step
+                ind2 = ind1 + len(sig1_wl)
+                sig2_wl = sig2_w[ind1:ind2]
+                # nonlinear correlation calculation
+                noncorr_lag[k] = _nonlinear_correlation(sig1_wl, sig2_wl, bin_size)
+
+            # get maximum value and shift in samples
+            tau_ind = np.argmax(noncorr_lag,)
+            tau[i] = tau_ind * lag_step - lag
+            max_noncorr[i] = np.max(noncorr_lag,)
+
+    return max_noncorr, tau
