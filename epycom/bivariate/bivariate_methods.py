@@ -61,6 +61,10 @@ def compute_lincorr(sig1, sig2, lag=0, lag_step=0, win=0, win_step=0):
 
     if len(sig1) != len(sig2):
         raise RuntimeError(f"Different length of signals!")
+        
+    if len(np.argwhere(np.isnan(sig2)))>0:
+        print('detected nan in time series - returning nan')
+        return np.nan
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)
@@ -135,6 +139,10 @@ def compute_spect_multp(sig1, sig2):
 
     if len(sig1) != len(sig2):
         raise RuntimeError(f"Different length of signals!")
+        
+    if len(np.argwhere(np.isnan(sig2)))>0:
+        print('detected nan in time series - returning nan')
+        return np.nan
 
     fft_1 = np.fft.rfft(sig1)
     fft_2 = np.fft.rfft(sig2)
@@ -170,12 +178,16 @@ def compute_relative_entropy(sig1, sig2):
     -------
     ren12, ren21 = compute_relative_entropy(sig1, sig2)
     """
-
+    
     if type(sig1) != np.ndarray or type(sig2) != np.ndarray:
         raise TypeError(f"Signals have to be in numpy arrays!")
 
     if len(sig1) != len(sig2):
         raise RuntimeError(f"Different length of signals!")
+        
+    if len(np.argwhere(np.isnan(sig2)))>0:
+        print('detected nan in time series - returning nan')
+        return np.nan
 
     h1 = np.histogram(sig1, 10)
     h2 = np.histogram(sig2, 10)
@@ -220,6 +232,10 @@ def compute_phase_sync(sig1, sig2):
 
     if len(sig1) != len(sig2):
         raise RuntimeError(f"Different length of signals!")
+        
+    if len(np.argwhere(np.isnan(sig2)))>0:
+        print('detected nan in time series - returning nan')
+        return np.nan
 
     sig1_ph = angle(hilbert(sig1))
     sig2_ph = angle(hilbert(sig2))
@@ -269,6 +285,10 @@ def compute_phase_const(sig1, sig2, lag, lag_step):
 
     if len(sig1) != len(sig2):
         raise RuntimeError(f"Different length of signals!")
+        
+    if len(np.argwhere(np.isnan(sig2)))>0:
+        print('detected nan in time series - returning nan')
+        return np.nan
 
     nstep = int((len(sig1) - lag) / lag_step)
 
@@ -338,6 +358,10 @@ def compute_pli(sig1, sig2, lag, lag_step, win=0, win_step=0):
 
     if len(sig1) != len(sig2):
         raise RuntimeError(f"Different length of signals!")
+        
+    if len(np.argwhere(np.isnan(sig2)))>0:
+        print('detected nan in time series - returning nan')
+        return np.nan
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)
@@ -441,6 +465,10 @@ def compute_coherence(sig1, sig2, fs, fband, lag=0, lag_step=0, win=0, win_step=
 
     if len(sig1) != len(sig2):
         raise RuntimeError(f"Different length of signals!")
+        
+    if len(np.argwhere(np.isnan(sig2)))>0:
+        print('detected nan in time series - returning nan')
+        return np.nan
 
     if win > len(sig1) or win <= 0:
         win = len(sig1)
