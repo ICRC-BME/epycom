@@ -46,31 +46,22 @@ def compute_hjorth_complexity(signal, fs=5000):
 
 
 class HjorthComplexity(Method):
-    """
-    Compute Hjorth complexity of time series
 
-    Parameters
-    ----------
-    signal: np.array
-        Signal to analyze, time series (array, int, float)
-    fs: float
-        Sampling frequency of the time series
+    def __init__(self, **kwargs):
+        """
+        Hjorth complexity of time series
 
-    Returns
-    -------
-    hjorth_complexity: float
+        Parameters
+        ----------
+        fs: float
+            Sampling frequency of the time series
 
-    Example
-    -------
-    hjorth_complexity = compute_hjorth_complexity(data, 5000)
-
-    Note
-    ----
-    result is NOT frequency dependent
-    """
-
-    def __init__(self):
-        super().__init__(compute_hjorth_complexity)
+        Note
+        ----
+        result is NOT frequency dependent
+        """
+        
+        super().__init__(compute_hjorth_complexity, **kwargs)
 
         self.algorithm = 'HJORTH_COMPLEXITY'
         self.version = '1.0.0'

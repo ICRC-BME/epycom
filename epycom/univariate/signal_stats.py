@@ -58,32 +58,19 @@ def compute_signal_stats(sig):
     return sig_stats
 
 class SignalStats(Method):
-    """
-    Class to analyze basic signal statistics
 
-    Parameters:
-    ----------
-    sig: np.array
-        signal to analyze, time series (array, int, float)
+    def __init__(self, **kwargs):
+        """
+        Class to analyze basic signal statistics
 
-    Returns
-    -------
-    results: tuple
-        - power_std: standard deviation of power in band
-        - power_mean: mean of power in band
-        - power_median: median of power in band
-        - power_max: max value of power in band
-        - power_min: min value of power in band
-        - power_perc25: 25 percentile of power in band
-        - power_perc75: 75 percentile of power in band
+        Parameters:
+        ----------
+        sig: np.array
+            signal to analyze, time series (array, int, float)
 
-    Example
-    -------
-    sig_stats = compute_signal_stats(sig)
-    """
+        """
 
-    def __init__(self):
-        super().__init__(compute_signal_stats)
+        super().__init__(compute_signal_stats, **kwargs)
 
         self.algorithm = 'SIGNAL_STATS'
         self.version = '1.0.0'

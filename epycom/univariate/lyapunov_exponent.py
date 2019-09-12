@@ -192,42 +192,30 @@ def compute_lyapunov_exponent(data, fs=5000, dimension=5, sample_lag=None,
     return le
 
 class LyapunovExponent(Method):
-    """
-    Lyapnov largest exponent estimation according to Rosenstein algorythm
 
-    With use of some parts from nolds library:
-    https://pypi.org/project/nolds
-    https://github.com/CSchoel
+    def __init__(self, **kwargs):
+        """
+        Lyapnov largest exponent estimation according to Rosenstein algorythm
 
-    Parameters
-    ----------
-    data: np.array
-        Signal to analyze, time series (array, int, float).
-    fs: float
-        Sampling frequency
-    dimensions: int
-        Number of dimensions to compute lyapunov exponent.
-    sample_lag: int
-        Delay in samples used for coordination extraction.
-    trajectory_len: int
-        Number of points on divergence trajectory.
-    min_tstep: int
-        Nearest neighbors have temporal separation greater then min_tstep.
+        With use of some parts from nolds library:
+        https://pypi.org/project/nolds
+        https://github.com/CSchoel
 
-    Returns
-    -------
-    le: float
-        Estimation of largest Lyapunov coeficient acording to Rosenstein
-        algorithm.
+        Parameters
+        ----------
+        fs: float
+            Sampling frequency
+        dimensions: int
+            Number of dimensions to compute lyapunov exponent.
+        sample_lag: int
+            Delay in samples used for coordination extraction.
+        trajectory_len: int
+            Number of points on divergence trajectory.
+        min_tstep: int
+            Nearest neighbors have temporal separation greater then min_tstep.
+        """
 
-    Example
-    -------
-    le = compute_lyapunov_exp(data, fs=5000, dimension=5, sample_lag=None,
-                         trajectory_len=20, min_tsep=500)
-    """
-
-    def __init__(self):
-        super().__init__(compute_lyapunov_exponent)
+        super().__init__(compute_lyapunov_exponent, **kwargs)
 
         self.algorithm = 'LYAPUNOV_EXPONENT'
         self.version = '1.0.0'

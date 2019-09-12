@@ -12,7 +12,7 @@ import numpy as np
 # Local imports
 from ..utils.method import Method
 
-def compute_pse(sig, **kwargs):
+def compute_pse(sig):
     """
     Power spectral entropy
 
@@ -40,25 +40,18 @@ def compute_pse(sig, **kwargs):
 
 
 class PowerSpectralEntropy(Method):
-    """
-    Power spectral entropy
 
-    Parameters
-    ----------
-    sig: np.array
-        time series (float)
+    def __init__(self, **kwargs):
+        """
+        Power spectral entropy
 
-    Returns
-    -------
-    pse - power spectral entropy of analyzed signal, a non-negative value
+        Parameters
+        ----------
+        sig: np.array
+            time series (float)
+        """
 
-    Example
-    -------
-    pac = comute_pse(sig)
-    """
-
-    def __init__(self):
-        super().__init__(compute_pse)
+        super().__init__(compute_pse, **kwargs)
 
         self.algorithm = 'POWER_SPECTRAL_ENTROPY'
         self.version = '1.0.0'

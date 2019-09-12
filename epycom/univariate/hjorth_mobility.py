@@ -48,31 +48,18 @@ def compute_hjorth_mobility(signal, fs=5000):
     return hjorth_mobility
 
 class HjorthMobility(Method):
-    """
-    Compute Hjorth mobility of time series
 
-    Parameters
-    ----------
-    signal: np.array
-        Signal to analyze, time series (array, int, float)
-    fs: float
-        Sampling frequency of the time series
+    def __init__(self, **kwargs):
+        """
+        Hjorth mobility of time series
 
-    Returns
-    -------
-    hjorth_mobility: float
+        Parameters
+        ----------
+        fs: float
+            Sampling frequency of the time series
+        """
 
-    Example
-    -------
-    hjorth_mobility = compute_hjorth_mobility(data, 5000)
-
-    Note
-    ----
-    Result is frequency dependent
-    """
-
-    def __init__(self):
-        super().__init__(compute_hjorth_mobility)
+        super().__init__(compute_hjorth_mobility, **kwargs)
 
         self.algorithm = 'HJORTH_MOBILITY'
         self.version = '1.0.0'

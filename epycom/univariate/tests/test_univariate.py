@@ -20,9 +20,8 @@ from epycom.univariate import (SignalStats,
 
 
 def test_signal_stats(create_testing_data, benchmark):
-    ch = create_testing_data
     compute_instance = SignalStats()
-    stats = benchmark(compute_instance.compute, ch)
+    stats = benchmark(compute_instance.compute, create_testing_data)
 
     expected_vals = (6.68954,
                      5.0,
@@ -37,43 +36,35 @@ def test_signal_stats(create_testing_data, benchmark):
 
 
 def test_fac(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_fac, ch, 5000), 5)
+    res = round(benchmark(compute_fac, create_testing_data, 5000), 5)
     assert res == -0.00019
 
 
 def test_pac(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_pac, ch, 5000), 5)
+    res = round(benchmark(compute_pac, create_testing_data, 5000), 5)
     assert res == 0.01189
 
 
 def test_pse(create_testing_data, benchmark):
-    ch = create_testing_data
-    compute_instance = PowerSpectralEntropy
-    res = round(benchmark(compute_instance.compute, ch), 5)
+    compute_instance = PowerSpectralEntropy()
+    res = round(benchmark(compute_instance.compute, create_testing_data), 5)
     assert res == 4.32193
 
 
 def test_lyap_large(create_testing_data, benchmark):
-    ch = create_testing_data
-    compute_instance = LyapunovExponent()
-    compute_instance.params = {'sample_lag': 25}
-    res = round(benchmark(compute_instance.compute, ch[0:5000]), 5)
+    compute_instance = LyapunovExponent(sample_lag=25)
+    res = round(benchmark(compute_instance.compute,
+                          create_testing_data[0:5000]), 5)
     assert res == 5.79481
 
 
 def test_hjorth_mobility(create_testing_data, benchmark):
-    ch = create_testing_data
-    compute_instance = HjorthMobility()
-    compute_instance.params = {'fs': 5000}
-    res = round(benchmark(compute_instance.compute, ch), 5)
+    compute_instance = HjorthMobility(fs=5000)
+    res = round(benchmark(compute_instance.compute, create_testing_data), 5)
     assert res == 3113.28291
 
 
 def test_hjorth_complexity(create_testing_data, benchmark):
-    ch = create_testing_data
-    compute_instance = HjorthComplexity()
-    compute_instance.params = {'fs': 5000}
-    res = round(benchmark(compute_instance.compute, ch), 5)
+    compute_instance = HjorthComplexity(fs=5000)
+    res = round(benchmark(compute_instance.compute, create_testing_data), 5)
     assert res == 2.27728
