@@ -19,7 +19,24 @@ Basic template for method classes
 
 
 class Method:
+    """
+    Class for computations using underlying compute function
 
+    Attributes
+    ----------
+    algorithm: str
+        Algorithm name
+    version: str
+        Current version of the algorithm
+    dtype: np.dtype
+        Numpy data type of the results returned by run_windowed method
+    
+    Methods
+    -------
+    compute(data)
+    
+    run_windowed(data, window_size=5000, overlap=None, n_cores=None)
+    """
     def __init__(self, compute_function, **kwargs):
         self.algorithm = ''
         self.version = ''
@@ -41,6 +58,19 @@ class Method:
         self._check_params()
 
     def compute(self, data):
+        """
+        Function to run underlying compute function.
+
+        Parameters
+        ----------
+        data: numpy.ndarray
+            Data to analyze. Either 1D or 2D where shape = (signals, samples)
+
+        Returns
+        -------
+        result: float | tuple
+            Result of the compute function
+        """
         return self._compute_function(data, **self._params)
     
     def _check_params(self):
@@ -75,7 +105,7 @@ class Method:
         Returns
         -------
         results array: numpy.ndarray
-            Array with the results of processing.
+            Array with the results of processing with dtype = self.dtype
         """
     
         # Take care of parameters
