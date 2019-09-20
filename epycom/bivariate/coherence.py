@@ -14,8 +14,8 @@ from scipy.signal import coherence
 from ..utils.method import Method
 
 
-def compute_coherence(sig, fs, fband, lag=0, lag_step=0, win=0, win_step=0,
-                      fft_win=1):
+def compute_coherence(sig, fs=5000, fband=[1.0, 4.0], lag=0, lag_step=0, win=0,
+                      win_step=0, fft_win=1):
     """
     Magnitude squared coherence between two time series (raw,
     not filtered signals)
@@ -100,7 +100,7 @@ def compute_coherence(sig, fs, fband, lag=0, lag_step=0, win=0, win_step=0,
 
             sig1_wl = sig1_w[lag:len(sig1_w) - lag]
 
-            coh = []
+            coh_win = []
             for i in range(0, nstep_lag + 1):
                 ind1 = i * lag_step
                 ind2 = ind1 + len(sig1_wl)
@@ -108,13 +108,13 @@ def compute_coherence(sig, fs, fband, lag=0, lag_step=0, win=0, win_step=0,
                 sig2_wl = sig2_w[ind1:ind2]
 
                 f, coh = coherence(sig1_wl, sig2_wl, fs, nperseg=fft_win)
-                coh.append(np.mean(coh[fc1:fc2]))
+                coh_win.append(np.mean(coh[fc1:fc2]))
 
-            tau_ind = coh.index(max(coh))
+            tau_ind = coh_win.index(max(coh_win))
             tau.append(tau_ind * lag_step - lag)
-            max_coh.append(np.max(coh))
+            max_coh.append(np.max(coh_win))
 
-    return max_coh, tau
+    return max_coh[0], tau[0]
 
 
 class Coherence(Method):

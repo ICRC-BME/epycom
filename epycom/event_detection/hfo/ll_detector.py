@@ -19,8 +19,7 @@ from ...utils.method import Method
 def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
                   window_overlap=0.25):
     """
-    Line-length detection algorithm {Gardner et al. 2007, Worrell et al. 2018,
-    Akiyama et al. 2011}.
+    Line-length detection algorithm.
 
     Parameters
     ----------
@@ -35,11 +34,18 @@ def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
     window_overlap: float
         Fraction of the window overlap (0 to 1)
 
-    Returns:
-    --------
+    Returns
+    -------
     output: list
         List of tuples with the following structure:
         (event_start, event_stop)
+
+    References
+    ----------
+    [1] A. B. Gardner, G. A. Worrell, E. Marsh, D. Dlugos, and B. Litt, “Human 
+    and automated detection of high-frequency oscillations in clinical 
+    intracranial EEG recordings,” Clin. Neurophysiol., vol. 118, no. 5, pp. 
+    1134–1143, May 2007.
     """
 
     # Calculate window values for easier operation
@@ -100,8 +106,7 @@ class LineLengthDetector(Method):
 
     def __init__(self, **kwargs):
         """
-        Line-length detection algorithm {Gardner et al. 2007,
-        Worrell et al. 2018, Akiyama et al. 2011}.
+        Line-length detection algorithm.
 
         Parameters
         ----------
@@ -113,6 +118,13 @@ class LineLengthDetector(Method):
             Sliding window size in samples
         window_overlap: float
             Fraction of the window overlap (0 to 1)
+
+        References
+        ----------
+        [1] A. B. Gardner, G. A. Worrell, E. Marsh, D. Dlugos, and B. Litt, 
+        “Human and automated detection of high-frequency oscillations in 
+        clinical intracranial EEG recordings,” Clin. Neurophysiol., vol. 118, 
+        no. 5, pp. 1134–1143, May 2007.
         """
 
         super().__init__(detect_hfo_ll, **kwargs)

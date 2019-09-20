@@ -34,11 +34,18 @@ def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
     window_overlap: float
         Fraction of the window overlap (0 to 1)
 
-    Returns:
-    --------
+    Returns
+    -------
     output: list
         List of tuples with the following structure:
         (event_start, event_stop)
+
+    References
+    ----------
+    [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel, 
+    “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz) 
+    Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,” 
+    J. Neurophysiol., vol. 88, pp. 1743–1752, 2002.
     """
 
     # Calculate window values for easier operation
@@ -99,8 +106,7 @@ class RootMeanSquareDetector(Method):
 
     def __init__(self, **kwargs):
         """
-        Root mean square detection algorithm {Staba et al. 2002,
-         Blanco et al 2010}.
+        Root mean square detection algorithm.
 
         Parameters
         ----------
@@ -112,6 +118,13 @@ class RootMeanSquareDetector(Method):
             Sliding window size in samples
         window_overlap: float
             Fraction of the window overlap (0 to 1)
+
+        References
+        ----------
+        [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel, 
+        “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz) 
+        Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,” 
+        J. Neurophysiol., vol. 88, pp. 1743–1752, 2002.
         """
 
         super().__init__(detect_hfo_rms, **kwargs)

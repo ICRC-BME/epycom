@@ -16,8 +16,8 @@ from ..utils.method import Method
 
 def compute_phase_sync(sig):
     """
-    Calculation of phase synchronization using Hilbert transf. 
-    {Quiroga et al. 2008} sensitive to phases, irrespective of the amplitude
+    Calculation of phase synchronization using Hilbert transformation 
+    sensitive to phases, irrespective of the amplitude
     and phase shift, pre-filtering of the signals is necessary
 
     Parameters
@@ -33,6 +33,10 @@ def compute_phase_sync(sig):
     Example
     -------
     phs = compute_phase_sync(sig)
+
+    References
+    ----------
+    Quiroga et al. 2008
     """
 
     if type(sig) != np.ndarray:
@@ -53,10 +57,13 @@ class PhaseSynchrony(Method):
 
     def __init__(self, **kwargs):
         """
-        Calculation of phase synchronization using Hilbert transf. 
-        {Quiroga et al. 2008} sensitive to phases, irrespective of the
-        amplitude and phase shift, pre-filtering of the signals is necessary
+        Calculation of phase synchronization using Hilbert transformation 
+        sensitive to phases, irrespective of the amplitude
+        and phase shift, pre-filtering of the signals is necessary
 
+        References
+        ----------
+        Quiroga et al. 2008
         """
         super().__init__(compute_phase_sync, **kwargs)
 

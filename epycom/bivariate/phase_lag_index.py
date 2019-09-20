@@ -16,7 +16,7 @@ from ..utils.method import Method
 
 def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
     """
-    phase-lag index {Stam et al. 2007}
+    Phase-lag index.
 
     - filter signal before pli calculation (if one is filtered and the other 
       is not (or in different f-band), it can return fake high pli, which is 
@@ -47,6 +47,12 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
     Example
     -------
     pli, tau = compute_pli(sig, lag=500, lag_step=50)
+
+    References
+    ----------
+    [1] C. J. Stam and J. C. Reijneveld, “Graph theoretical analysis of 
+    complex networks in the brain,” Nonlinear Biomed. Phys., vol. 1, no. 1, 
+    p. 3, 2007.
     """
 
     # TODO: print out warnings if conditions are met for warnings in doc string
@@ -102,14 +108,14 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
         tau.append(tau_ind * lag_step - lag)
         pli.append(np.max(pli_temp))
 
-    return pli, tau
+    return pli[0], tau[0]
 
 
 class PhaseLagIndex(Method):
     
     def __init__(self, **kwargs):
         """
-        phase-lag index {Stam et al. 2007}
+        Phase-lag index.
 
         - filter signal before pli calculation (if one is filtered and the
           other is not (or in different f-band), it can return fake high pli,
@@ -128,7 +134,12 @@ class PhaseLagIndex(Method):
             width of correlation win in samples
         win_step: int
             step of win in samples
-
+        
+        References
+        ----------
+        [1] C. J. Stam and J. C. Reijneveld, “Graph theoretical analysis of 
+        complex networks in the brain,” Nonlinear Biomed. Phys., vol. 1, no. 1, 
+        p. 3, 2007.
         """
 
         # TODO: print out warnings if conditions for warnings in doc string

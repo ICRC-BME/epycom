@@ -21,7 +21,7 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
 					   cyc_th=1, gap_th=1, mp=1):
 	"""
 	Slightly modified algorithm which uses the 2D HFO hilbert detection
-	used in {Kucewicz et al. 2014}
+	used in Kucewicz et al. 2014.
 
 	Parameters
 	----------
@@ -48,12 +48,19 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
 	mp: int
 		Number of cores to use (default=1)
 
-	Returns:
-	---------
+	Returns
+	-------
 	output: list
 		List of tuples with the follwoing structure of detections:
 		(event_start, event_stop, freq_min, freq_max, freq_at_max,
 		 max_amplitude)
+
+	References
+	----------
+	[1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann, 
+	M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and 
+	G. A. Worrell, “High frequency oscillations are associated with cognitive 
+	processing in human recognition memory.,” Brain, pp. 1–14, Jun. 2014.
 	"""
 
 	# Create output dataframe
@@ -247,7 +254,7 @@ class HilbertDetector(Method):
     def __init__(self, **kwargs):
         """
 		Slightly modified algorithm which uses the 2D HFO hilbert detection
-		used in {Kucewicz et al. 2014}
+		used in Kucewicz et al. 2014.
 
 		Parameters
 		----------
@@ -271,6 +278,14 @@ class HilbertDetector(Method):
 			Number of cycles for gaps (default=1)
 		mp: int
 			Number of cores to use (default=1)
+
+		References
+		----------
+		[1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann, 
+		M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and 
+		G. A. Worrell, “High frequency oscillations are associated with 
+		cognitive processing in human recognition memory.,” Brain, pp. 1–14, 
+		Jun. 2014.
 		"""
 
         super().__init__(detect_hfo_hilbert, **kwargs)

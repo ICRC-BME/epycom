@@ -96,7 +96,7 @@ def compute_lincorr(sig, lag=0, lag_step=0, win=0, win_step=0):
             tau.append(tau_ind * lag_step - lag)
             max_corr.append(np.max(lincorr))
 
-    return max_corr, tau
+    return max_corr[0], tau[0]
 
 
 class LinearCorrelation(Method):

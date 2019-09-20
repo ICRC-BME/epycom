@@ -56,7 +56,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1,
                        cycs_per_detect=4., low_fc=None, high_fc=None, mp=1):
     """
     Beta version of CS detection algorithm. Which was used to develop
-    CS detection algorithm {Cimbanlik et al. 2017}
+    CS detection algorithm.
 
     Parameters
     ----------
@@ -88,6 +88,12 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1,
     False stands for detections in single frequency bands whereas True
     stands for conglomerate created from detections in frequency bands that
     overlap in time domain.
+
+    References
+    ----------
+    [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS 
+    Algorithm: A Novel Method for High Frequency Oscillation Detection 
+    in EEG,” J. Neurosci. Methods, vol. 293, pp. 6–16, 2017.
     """
 
     # Create output
@@ -514,7 +520,7 @@ class CSDetector(Method):
     def __init__(self, **kwargs):
         """
         Beta version of CS detection algorithm. Which was used to develop
-        CS detection algorithm {Cimbanlik et al. 2017}
+        CS detection algorithm.
 
         Parameters
         ----------
@@ -530,6 +536,12 @@ class CSDetector(Method):
             High cut-off frequency
         mp: int
             Number of cores to use (def = 1)
+
+        References
+        ----------
+        [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS 
+        Algorithm: A Novel Method for High Frequency Oscillation Detection 
+        in EEG,” J. Neurosci. Methods, vol. 293, pp. 6–16, 2017.
         """
 
         super().__init__(detect_hfo_cs_beta, **kwargs)
