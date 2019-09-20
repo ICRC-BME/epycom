@@ -71,6 +71,11 @@ class Method:
         result: float | tuple
             Result of the compute function
         """
+        if np.any(data == np.nan):
+            warnings.warn(RuntimeWarning,
+                          "Detected NaN in time series returning Nan")
+            return np.nan
+
         return self._compute_function(data, **self._params)
     
     def _check_params(self):

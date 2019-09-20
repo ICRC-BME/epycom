@@ -72,7 +72,7 @@ class SignalStats(Method):
 
         super().__init__(compute_signal_stats, **kwargs)
 
-        self.algorithm = 'SIGNAL_STATS'
+        self.algorithm = 'SIGNAL_STATISTICS'
         self.version = '1.0.0'
         self.dtype = [('power_std', 'float32'),
                       ('power_mean', 'float32'),
