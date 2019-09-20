@@ -22,7 +22,8 @@ def detect_spikes_barkmeier(sig, fs=5000, scale=70, std_coeff=4,
                                             'LD': 0.01,
                                             'RD': 0.01},
                             filter_spec={'narrow': [20, 50],
-                                         'broad': [1, 80]}):
+                                         'broad': [1, 80]},
+                            sample_offset=0):
     """
     Python version of Barkmeier's EEG spike detector. {Barkmeier et al. 2011}
 
@@ -49,6 +50,9 @@ def detect_spikes_barkmeier(sig, fs=5000, scale=70, std_coeff=4,
         narrow and broad band filter specifications
         {'narrow':[20, 50],
          'broad':[1, 80]}
+    sample_offset: int
+        Offset which is added to the final detection. This is used when the 
+        function is run in separate windows. Default = 0
 
     Returns
     -------
@@ -142,7 +146,7 @@ def detect_spikes_barkmeier(sig, fs=5000, scale=70, std_coeff=4,
               l_dur > det_thresholds['LD'] and
               r_dur > det_thresholds['RD']))
                 and spike_i - last_idx > 0.005):
-            output.append((int(spike_i), spike_V, 
+            output.append((int(spike_i)+sample_offset, spike_V, 
                            l_amp, l_dur,
                            r_amp, r_dur))
             last_idx = spike_i
@@ -178,6 +182,9 @@ class BarkmeierDetector(Method):
             narrow and broad band filter specifications
             {'narrow':[20, 50],
              'broad':[1, 80]}
+        sample_offset: int
+            Offset which is added to the final detection. This is used when the 
+            function is run in separate windows. Default = 0
         """
 
         super().__init__(detect_spikes_barkmeier, **kwargs)

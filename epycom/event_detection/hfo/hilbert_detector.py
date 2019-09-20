@@ -18,7 +18,7 @@ from ...utils.method import Method
 def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
 					   window=10, window_overlap=0,
 					   band_spacing='linear', num_bands=300,
-					   cyc_th=1, gap_th=1, mp=1):
+					   cyc_th=1, gap_th=1, mp=1, sample_offset=0):
 	"""
 	Slightly modified algorithm which uses the 2D HFO hilbert detection
 	used in Kucewicz et al. 2014.
@@ -47,6 +47,9 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
 		Number of cycles for gaps (default=1)
 	mp: int
 		Number of cores to use (default=1)
+	sample_offset: int
+        Offset which is added to the final detection. This is used when the 
+        function is run in separate windows. Default = 0
 
 	Returns
 	-------
@@ -124,7 +127,8 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
 		frequency_at_max = coffs[int(outline[np.argmax(outline[:, 3]), 0])]
 		max_amplitude = max(outline[:, 3])
 
-		output.append((start, stop, freq_min, freq_max, frequency_at_max,
+		output.append((start+sample_offset, stop+sample_offset,
+					   freq_min, freq_max, frequency_at_max,
 					   max_amplitude))
 
 		# Plot the image
@@ -278,6 +282,9 @@ class HilbertDetector(Method):
 			Number of cycles for gaps (default=1)
 		mp: int
 			Number of cores to use (default=1)
+		sample_offset: int
+            Offset which is added to the final detection. This is used when the 
+            function is run in separate windows. Default = 0
 
 		References
 		----------

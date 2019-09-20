@@ -133,11 +133,12 @@ class Method:
         window_idxs['event_start'] = (np.arange(n_windows) * window_size
                                  - np.arange(n_windows) * overlap_samp)
         window_idxs['event_stop'] = window_idxs['event_start'] + window_size
-        print(window_idxs)
         if n_cores is None or mp.cpu_count() < 2:
             results = []
             
             for ci, idx in enumerate(window_idxs):
+                if not self._window_indices:
+                    self._params['sample_offset'] = idx[0]
                 if data.ndim > 1:
                     results.append(self.compute(data[:, idx[0]: idx[1]]))
                 else:
@@ -151,11 +152,14 @@ class Method:
 
             chunks = []
             for idx in window_idxs:
+                if not self._window_indices:
+                    self._params['sample_offset'] = idx[0]
                 if data.ndim > 1:
                     chunks.append((data[:, idx[0]: idx[1]]))
                 else:
                     chunks.append((data[idx[0]: idx[1]]))
             
+            # TODO: pass parameters into comput function!!!!
             results = pool.map(self.compute, chunks)
                             
             pool.close()

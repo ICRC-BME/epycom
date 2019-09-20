@@ -52,8 +52,8 @@ from ...utils.method import Method
 #    return
 
 
-def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1,
-                       cycs_per_detect=4., low_fc=None, high_fc=None, mp=1):
+def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
+                       low_fc=None, high_fc=None, mp=1, sample_offset=0):
     """
     Beta version of CS detection algorithm. Which was used to develop
     CS detection algorithm.
@@ -74,6 +74,9 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1,
         High cut-off frequency
     mp: int
         Number of cores to use (def = 1)
+    sample_offset: int
+        Offset which is added to the final detection. This is used when the 
+        function is run in separate windows. Default = 0
 
     Returns
     -------
@@ -246,8 +249,8 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1,
             prod = det_arr[:, 6].max()
             dur = float(event_stop - event_start) / fs
 
-            output.append((event_start, event_stop, low_fc, high_fc,
-                           amp, fhom, dur, prod, True))
+            output.append((event_start+sample_offset, event_stop+sample_offset,
+                           low_fc, high_fc, amp, fhom, dur, prod, True))
 
     if mp > 1:
         work_pool.close()
@@ -536,6 +539,9 @@ class CSDetector(Method):
             High cut-off frequency
         mp: int
             Number of cores to use (def = 1)
+        sample_offset: int
+            Offset which is added to the final detection. This is used when the 
+            function is run in separate windows. Default = 0
 
         References
         ----------
