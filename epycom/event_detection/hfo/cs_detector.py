@@ -557,3 +557,5 @@ class CSDetector(Method):
                       ('dur', 'float32'),
                       ('prod', 'float32'),
                       ('type', 'bool')]
+
+        self._window_indices = False

@@ -298,3 +298,5 @@ class HilbertDetector(Method):
                       ('freq_max', 'float32'),
                       ('freq_at_max', 'float32'),
                       ('max_amplitude', 'float32')]
+
+        self._window_indices = False

@@ -7,9 +7,11 @@
 import multiprocessing as mp
 import warnings
 import inspect
+from itertools import chain
 
 # Third pary imports
 import numpy as np
+import numpy.lib.recfunctions as rfn
 
 # Local imports
 
@@ -46,6 +48,8 @@ class Method:
         self._compute_function = compute_function
         self._check_params()
         
+        self._window_indices = True
+
         return
 
     @property
@@ -121,29 +125,23 @@ class Method:
 
         overlap_samp = window_size * overlap
 
-        # Output dtype
-        output_dtype =  ([('event_start', 'int32'), ('event_stop', 'int32')]
-                         + self.dtype)
-
         # Calculate window indices
         n_windows = int(np.floor((np.max(data.shape) - window_size)
                         / (window_size - overlap_samp)) + 1)
-        output = np.empty(n_windows, output_dtype)
-        output['event_start'] = (np.arange(n_windows) * window_size
+        window_idxs = np.empty(n_windows, [('event_start', 'int32'),
+                                           ('event_stop', 'int32')])
+        window_idxs['event_start'] = (np.arange(n_windows) * window_size
                                  - np.arange(n_windows) * overlap_samp)
-        output['event_stop'] = output['event_start'] + window_size
-
+        window_idxs['event_stop'] = window_idxs['event_start'] + window_size
+        print(window_idxs)
         if n_cores is None or mp.cpu_count() < 2:
             results = []
             
-            for ci, idx in enumerate(output):
+            for ci, idx in enumerate(window_idxs):
                 if data.ndim > 1:
                     results.append(self.compute(data[:, idx[0]: idx[1]]))
                 else:
-                    results.append(self.compute(data[idx[0]: idx[1]]))
-                
-            output[[x[0] for x in self.dtype]] = np.array(results, self.dtype)
-                         
+                    results.append(self.compute(data[idx[0]: idx[1]]))                  
         else:
             if n_cores > mp.cpu_count():
                 n_cores = mp.cpu_count()
@@ -152,15 +150,25 @@ class Method:
             pool = mp.Pool(n_cores)
 
             chunks = []
-            for idx in output:
+            for idx in window_idxs:
                 if data.ndim > 1:
                     chunks.append((data[:, idx[0]: idx[1]]))
                 else:
                     chunks.append((data[idx[0]: idx[1]]))
             
-            output[[x[0] for x in self.dtype]] = np.array(pool.map(
-                    self.compute, chunks), self.dtype)
+            results = pool.map(self.compute, chunks)
                             
             pool.close()
+
+        # Output dtype
+        if self._window_indices:
+            output = rfn.merge_arrays([window_idxs,
+                                       np.array(results, self.dtype)],
+                                      flatten=True,
+                                      usemask=False)
+        else:
+            # Make sure the results list is flat
+            results = list(chain.from_iterable(results))
+            output = np.array(results, self.dtype)
 
         return output

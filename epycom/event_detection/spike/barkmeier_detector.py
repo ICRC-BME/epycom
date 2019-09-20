@@ -190,3 +190,5 @@ class BarkmeierDetector(Method):
                       ('left_dur', 'float32'),
                       ('right_amp', 'float32'),
                       ('right_dur', 'float32')]
+
+        self._window_indices = False

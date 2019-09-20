@@ -133,3 +133,6 @@ class RootMeanSquareDetector(Method):
         self.version = '1.0.0'
         self.dtype = [('event_start', 'int32'),
                       ('event_stop', 'int32')]
+
+        self._window_indices = False
+        
