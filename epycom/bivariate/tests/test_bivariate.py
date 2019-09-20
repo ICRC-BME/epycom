@@ -5,6 +5,7 @@
 
 
 # Std imports
+from math import isclose
 
 # Third pary imports
 
@@ -19,48 +20,49 @@ from epycom.bivariate import (LinearCorrelation,
 
 def test_lincorr(create_testing_data, benchmark):
     compute_instance = LinearCorrelation()
-    res = round(benchmark(compute_instance.compute,
-                          create_testing_data)[0][0], 5)
-    assert (res == 0)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+
+    assert isclose(res[0][2], 0, abs_tol=10-6)
 
 
 def test_spect_multp(create_testing_data, benchmark):
     compute_instance = SpectraMultiplication()
-    sm_mean, sm_std = benchmark(compute_instance.compute,
-                                create_testing_data)
-    sm_mean = round(sm_mean, 5)
-    sm_std = round(sm_std, 5)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
 
-    assert ((sm_mean, sm_std) == (70522.64105, 35728.93925))
+    assert isclose(res[0][2], 70522.64105, abs_tol=10-6)
+    assert isclose(res[0][3], 35728.93925, abs_tol=10-6)
 
 
 def test_relative_entropy(create_testing_data, benchmark):
     compute_instance = RelativeEntropy()
-    res = round(benchmark(compute_instance.compute,
-                          create_testing_data), 5)
-    assert (res == 0.17262)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+
+    assert isclose(res[0][2], 0.17262, abs_tol=10-6)
 
 
 def test_phase_sync(create_testing_data, benchmark):
     compute_instance = PhaseSynchrony()
-    res = round(benchmark(compute_instance.compute,
-                          create_testing_data), 5)
-    assert (res == 1.0)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 1.0, abs_tol=10-6)
 
 
 def test_phase_const(create_testing_data, benchmark):
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
     compute_instance = PhaseConsistency(lag=lag, lag_step=lag_step)
-    res = round(benchmark(compute_instance.compute,
-                          create_testing_data), 5)
-    assert (res == 0.41204)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 0.41203687, abs_tol=10-6)
 
 
 def test_pli(create_testing_data, benchmark):
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
     compute_instance = PhaseLagIndex(lag=lag, lag_step=lag_step)
-    res = round(benchmark(compute_instance.compute,
-                          create_testing_data)[0][0], 5)
-    assert (res == 1.0)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 1.0, abs_tol=10-6)

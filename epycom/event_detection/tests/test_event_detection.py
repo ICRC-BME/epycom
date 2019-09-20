@@ -4,6 +4,7 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
+from math import isclose
 
 # Third pary imports
 import numpy as np
@@ -21,17 +22,18 @@ from epycom.event_detection import (LineLengthDetector,
 # ----- Spikes -----
 def test_detect_spikes(create_testing_eeg_data, benchmark):
     compute_instance = BarkmeierDetector()
-    dets = benchmark(compute_instance.compute, create_testing_eeg_data)
+    dets = benchmark(compute_instance.run_windowed,
+                     create_testing_eeg_data, 50000)
 
     expected_vals = (20242,
-                     1368.23346,
-                     1517.99373,
+                     1368.2334,
+                     1517.9938,
                      0.05,
-                     1486.87514,
+                     1486.8751,
                      0.0376)
 
     for exp_val, det in zip(expected_vals, dets[0]):
-        assert round(det, 5) == exp_val
+        assert isclose(det, exp_val, abs_tol=10e-5)
 
 
 # ----- HFO -----
@@ -43,7 +45,8 @@ def test_detect_hfo_ll(create_testing_eeg_data, benchmark):
     
     compute_instance = LineLengthDetector()
     compute_instance.params = {'window_size': window_size}
-    dets = benchmark(compute_instance.compute, filt_data)
+    dets = benchmark(compute_instance.run_windowed,
+                     filt_data, 50000)
 
     expected_vals = [(5040, 5198),
                      (34992, 35134)]
@@ -61,7 +64,8 @@ def test_detect_hfo_rms(create_testing_eeg_data, benchmark):
     
     compute_instance = RootMeanSquareDetector()
     compute_instance.params = {'window_size': window_size}
-    dets = benchmark(compute_instance.compute, filt_data)
+    dets = benchmark(compute_instance.run_windowed,
+                     filt_data, 50000)
 
     expected_vals = [(5040, 5198),
                      (35008, 35134)]
@@ -77,8 +81,9 @@ def test_detect_hfo_hilbert(create_testing_eeg_data, benchmark):
                               'low_fc': 80,
                               'high_fc': 600,
                               'threshold': 7}
-    dets = benchmark(compute_instance.compute, create_testing_eeg_data)
-
+    dets = benchmark(compute_instance.run_windowed,
+                     create_testing_eeg_data, 50000)
+    print(dets)
     expected_vals = [(5056, 5123),
                      (35028, 35063)]
 
@@ -95,7 +100,8 @@ def test_detect_hfo_cs_beta(create_testing_eeg_data, benchmark):
                                'threshold': 0.1,
                                'cycs_per_detect': 4.0}
 
-    dets = benchmark(compute_instance.compute, create_testing_eeg_data)
+    dets = benchmark(compute_instance.run_windowed,
+                     create_testing_eeg_data, 50000)
 
     # Only the second HFO is caught by CS (due to signal artificiality)
     expected_vals = [(34992, 35090),  # Band detection
