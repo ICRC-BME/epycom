@@ -13,13 +13,9 @@ import numpy as np
 from ..utils.method import Method
 
 
-def compute_lincorr(sig, lag=0, lag_step=0, win=0, win_step=0):
+def compute_lincorr(sig, lag=0, lag_step=0):
     """
     Linear correlation (Pearson's coefficient) between two time series
-    
-    When win and win_step is not 0, calculates evolution of correlation
-    
-    When win>len(sig) or win<=0, calculates only one corr coef
 
     When lag and lag_step is not 0, shifts the sig[1] from negative
     to positive lag and takes the max correlation (best fit)
@@ -32,10 +28,6 @@ def compute_lincorr(sig, lag=0, lag_step=0, win=0, win_step=0):
         negative and positive shift of time series in samples
     lag_step: int
         step of shift
-    win: int
-        width of correlation win in samples
-    win_step: int
-        step of win in samples
 
     Returns
     -------
@@ -49,54 +41,32 @@ def compute_lincorr(sig, lag=0, lag_step=0, win=0, win_step=0):
 
     Example
     -------
-    lincorr,tau = compute_lincorr(sig, 200, 20, 2500, 250)
+    lincorr,tau = compute_lincorr(sig, 200, 20)
     """
 
     if type(sig) != np.ndarray:
         raise TypeError(f"Signals have to be in numpy arrays!")
-
-    if win > len(sig[0]) or win <= 0:
-        win = len(sig[0])
-        win_step = 1
-
-    if win_step <= 0:
-        win_step = 1
-
-    nstep = int((len(sig[0]) - win) / win_step)
-    if nstep <= 0:
-        nstep = 1
     
     if lag == 0:
         lag_step = 1
     nstep_lag = int(lag * 2 / lag_step)
 
-    max_corr = []
-    tau = []
-    for i in range(0, nstep):
-        ind1 = i * win_step
-        ind2 = ind1 + win
+    sig1_w = sig[0]
+    sig2_w = sig[1]
 
-        if ind2 <= len(sig[0]):
-            sig1_w = sig[0][ind1:ind2]
-            sig2_w = sig[1][ind1:ind2]
+    sig1_wl = sig1_w[lag:len(sig1_w) - lag]
 
-            sig1_wl = sig1_w[lag:len(sig1_w) - lag]
+    lincorr = []
+    for i in range(0, nstep_lag + 1):
+        ind1 = i * lag_step
+        ind2 = ind1 + len(sig1_wl)
 
-            lincorr = []
-            for i in range(0, nstep_lag + 1):
-                ind1 = i * lag_step
-                ind2 = ind1 + len(sig1_wl)
+        sig2_wl = sig2_w[ind1:ind2]
 
-                sig2_wl = sig2_w[ind1:ind2]
+        corr_val = np.corrcoef(sig1_wl, sig2_wl)
+        lincorr.append(corr_val[0][1])
 
-                corr_val = np.corrcoef(sig1_wl, sig2_wl)
-                lincorr.append(corr_val[0][1])
-
-            tau_ind = lincorr.index(max(lincorr))
-            tau.append(tau_ind * lag_step - lag)
-            max_corr.append(np.max(lincorr))
-
-    return max_corr[0], tau[0]
+    return np.max(lincorr), lincorr.index(max(lincorr))
 
 
 class LinearCorrelation(Method):
@@ -118,10 +88,6 @@ class LinearCorrelation(Method):
             negative and positive shift of time series in samples
         lag_step: int
             step of shift
-        win: int
-            width of correlation win in samples
-        win_step: int
-            step of win in samples
 
         """
         super().__init__(compute_lincorr, **kwargs)
