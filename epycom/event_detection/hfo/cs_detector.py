@@ -67,7 +67,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
     threshold: float
         Threshold for detection between 0 and 1 (Default=0.1)
     cycs_per_detect: float
-        Statistical window size in secs (default=10)
+        Minimal number of cycles threshold. (Default=4)
     low_fc: float
         Low cut-off frequency
     high_fc: float
@@ -254,7 +254,6 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
 
     if mp > 1:
         work_pool.close()
-    print(output)
     return output
 
 # =============================================================================
@@ -532,7 +531,7 @@ class CSDetector(Method):
         threshold: float
             Threshold for detection between 0 and 1 (Default=0.1)
         cycs_per_detect: float
-            Statistical window size in secs (default=10)
+            Minimal number of cycles threshold. (Default=4)
         low_fc: float
             Low cut-off frequency
         high_fc: float
