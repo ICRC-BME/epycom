@@ -4,134 +4,19 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
-import pickle
 
 # Third pary imports
 import numpy as np
-from scipy.signal import butter, hilbert, filtfilt
 from scipy.spatial.distance import pdist, squareform
 
 # Local imports
-from ..utils.tools import try_jit_decorate
-
-
-@try_jit_decorate({'nopython': True, 'cache': True})
-def compute_signal_stats(sig):
-    """
-    Function to analyze basic stats of signal
-
-    Parameters:
-    ----------
-    sig: np.array
-        signal to analyze, time series (array, int, float)
-
-    Returns
-    -------
-    results: list
-        - power_std: standard deviation of power in band
-        - power_mean: mean of power in band
-        - power_median: median of power in band
-        - power_max: max value of power in band
-        - power_min: min value of power in band
-        - power_perc25: 25 percentile of power in band
-        - power_perc75: 75 percentile of power in band
-
-    Example
-    -------
-    sig_stats = compute_signal_stats(sig)
-    """
-
-    # signal power
-    sig_power = sig ** 2
-
-    # compute signal power statistics
-    sig_f_pw_std = sig_power.std()
-    sig_f_pw_mean = sig_power.mean()
-    sig_f_pw_median = np.median(sig_power)
-    sig_f_pw_max = sig_power.max()
-    sig_f_pw_min = sig_power.min()
-    sig_f_pw_perc25 = np.percentile(sig_power, 25)
-    sig_f_pw_perc75 = np.percentile(sig_power, 75)
-
-    sig_stats = np.array([sig_f_pw_std, sig_f_pw_mean, sig_f_pw_median,
-                          sig_f_pw_max, sig_f_pw_min,
-                          sig_f_pw_perc25, sig_f_pw_perc75])
-
-    return sig_stats
-
-
-def compute_hjorth_mobility(signal, fs, **kwargs):
-    """
-    Function to compute Hjorth mobility of time series
-
-    Parameters
-    ----------
-    signal: np.array
-        Signal to analyze, time series (array, int, float)
-    fs: float
-        Sampling frequency of the time series
-
-    Returns
-    -------
-    hjorth_mobility: float
-
-    Example
-    -------
-    hjorth_mobility = compute_hjorth_mobility(data, 5000)
-
-    Note
-    ----
-    result is frequency dependent
-    """
-
-    variancex = signal.var(ddof=1)
-    # diff signal is one sample shorter
-    variancedx = np.var(np.diff(signal) * fs, ddof=1)
-    # compute variance with degree of freedom=1 => The mean is normally
-    # calculated as x.sum() / N, where N = len(x). If, however, ddof is
-    # specified, the divisor N - ddof is used instead.
-
-    hjorth_mobility = np.sqrt(variancedx / variancex)
-    return hjorth_mobility
-
-
-def compute_hjorth_complexity(signal, fs, **kwargs):
-    """
-    Function to compute Hjorth complexity of time series
-
-    Parameters
-    ----------
-    signal: np.array
-        Signal to analyze, time series (array, int, float)
-    fs: float
-        Sampling frequency of the time series
-
-    Returns
-    -------
-    hjorth_complexity: float
-
-    Example
-    -------
-    hjorth_complexity = compute_hjorth_complexity(data, 5000)
-
-    Note
-    ----
-    result is NOT frequency dependent
-    """
-
-    mob = compute_hjorth_mobility(signal, fs)
-    # diff signal is one sample shorter
-    mobd = compute_hjorth_mobility(np.diff(signal) * fs, fs)
-    hjorth_complexity = mobd / mob
-    return hjorth_complexity
-
-# ______Help functions for large Lyapunov exponent computation
+from ..utils.method import Method
 
 
 def _compute_phase_space(data, dimensions, sample_lag):
     """
-    Function to create phase space of time series data. This function
-    takes value lagged by sample_lag as coordination in new dimension.
+    Create phase space of time series data. This function takes value lagged by
+     sample_lag as coordination in new dimension.
 
     Parameters
     ----------
@@ -163,8 +48,7 @@ def _compute_phase_space(data, dimensions, sample_lag):
 
 def _compute_acorr_exp(data, fs):
     """
-    Function to find point, where autocorrelation drops to 1-1/np.e of it's
-    maximum
+    Find point, where autocorrelation drops to 1-1/np.e of it's maximum
 
     Paremeters
     ----------
@@ -195,8 +79,8 @@ def _compute_acorr_exp(data, fs):
     return point
 
 
-def compute_lyapunov_exp(data, fs=5000, dimension=5, sample_lag=None,
-                         trajectory_len=20, min_tsep=500, **kwargs):
+def compute_lyapunov_exponent(data, fs=5000, dimension=5, sample_lag=None,
+                              trajectory_len=20, min_tsep=500):
     """
     Lyapnov largest exponent estimation according to Rosenstein algorythm
 
@@ -307,98 +191,32 @@ def compute_lyapunov_exp(data, fs=5000, dimension=5, sample_lag=None,
     return le
 
 
-def compute_fac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
-    """
-    Frequency-amplitude coupling
+class LyapunovExponent(Method):
 
-    Parameters
-    ----------
-    sig: np.array
-        time series (float)
+    def __init__(self, **kwargs):
+        """
+        Lyapnov largest exponent estimation according to Rosenstein algorythm
 
-    Returns
-    -------
-    fac: float
-        correlation of low freq. and high freq. envelope <-1,1>
+        With use of some parts from nolds library:
+        https://pypi.org/project/nolds
+        https://github.com/CSchoel
 
-    Example
-    -------
-    fac = compute_fac(sig, 5000)
+        Parameters
+        ----------
+        fs: float
+            Sampling frequency
+        dimensions: int
+            Number of dimensions to compute lyapunov exponent.
+        sample_lag: int
+            Delay in samples used for coordination extraction.
+        trajectory_len: int
+            Number of points on divergence trajectory.
+        min_tstep: int
+            Nearest neighbors have temporal separation greater then min_tstep.
+        """
 
-    """
-    nsamp = len(sig)
+        super().__init__(compute_lyapunov_exponent, **kwargs)
 
-    zpad = int(2**(np.ceil(np.log2(nsamp))))
-    sig_zeros = np.zeros(zpad)
-
-    b, a = butter(2, [lfc1 / (fs / 2), hfc1 / (fs / 2)], 'bandpass')
-    sig_f = filtfilt(b, a, sig)
-
-    b, a = butter(2, [lfc2 / (fs / 2), hfc2 / (fs / 2)], 'bandpass')
-    sig_fh = filtfilt(b, a, sig)
-    sig_zeros[0:nsamp] = sig_fh
-
-    sig_a = abs(hilbert(sig_zeros))**2
-    sig_a = sig_a[0:nsamp]
-
-    fac = np.corrcoef(sig_f, sig_a)[0][1]
-
-    return fac
-
-
-def compute_pac(sig, fs, lfc1=1, hfc1=30, lfc2=65, hfc2=180, **kwargs):
-    """
-    Phase-amplitude coupling
-
-    Parameters
-    ----------
-    sig: np.array
-        time series (float)
-
-    Returns
-    -------
-    pac: float
-        correlation of low freq. phase and high freq. envelope <-1,1>
-
-    Example
-    -------
-    pac = compute_pac(sig, 5000)
-    """
-    b, a = butter(2, [lfc1 / (fs / 2), hfc1 / (fs / 2)], 'bandpass')
-    sig_f = filtfilt(b, a, sig)
-    sig_f_ph = np.angle(hilbert(sig_f))
-
-    b, a = butter(2, [lfc2 / (fs / 2), hfc2 / (fs / 2)], 'bandpass')
-    sig_fh = filtfilt(b, a, sig)
-    sig_a = np.abs(hilbert(sig_fh))**2
-
-    pac = np.corrcoef(sig_f_ph, sig_a)[0][1]
-
-    return pac
-
-
-def compute_pse(sig, **kwargs):
-    """
-    Power spectral entropy
-
-    Parameters
-    ----------
-    sig: np.array
-        time series (float)
-
-    Returns
-    -------
-    pse - power spectral entropy of analyzed signal, a non-negative value
-
-    Example
-    -------
-    pac = comute_pse(sig)
-    """
-
-    ps = np.abs(np.fft.fft(sig))  # power spectrum
-    ps = ps**2 # power spectral density
-    ps = ps / sum(ps)  # normalized to probability density function
-
-    pse = -sum(ps * np.log2(ps))  # power spectral entropy
-
-    return pse
+        self.algorithm = 'LYAPUNOV_EXPONENT'
+        self.version = '1.0.0'
+        self.dtype = [('lyapunov_exponent', 'float32')]

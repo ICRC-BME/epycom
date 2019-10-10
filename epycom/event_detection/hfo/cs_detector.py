@@ -8,12 +8,11 @@ from multiprocessing import Pool
 
 # Third pary imports
 import numpy as np
-import pandas as pd
 from scipy.signal import butter, filtfilt, hilbert
 from scipy.special import gammaincinv
 
 # Local imports
-from ...utils.data_operations import create_output_df
+from ...utils.method import Method
 
 
 # %% CS detector
@@ -53,50 +52,56 @@ from ...utils.data_operations import create_output_df
 #    return
 
 
-def detect_hfo_cs_beta(data, fs, low_fc, high_fc,
-                       threshold=0.1, band_detections=True,
-                       stat_window_size=10, cycs_per_detect=4,
-                       mp=1):
+def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
+                       low_fc=None, high_fc=None, mp=1, sample_offset=0):
     """
     Beta version of CS detection algorithm. Which was used to develop
-    CS detection algorithm {Cimbanlik et al. 2017}
+    CS detection algorithm.
 
     Parameters
     ----------
-    data: numpy array
+    sig: numpy array
         1D numpy array with raw data
     fs: int
         Signal sampling frequency
+    threshold: float
+        Threshold for detection between 0 and 1 (Default=0.1)
+    cycs_per_detect: float
+        Minimal number of cycles threshold. (Default=4)
     low_fc: float
         Low cut-off frequency
     high_fc: float
         High cut-off frequency
-    threshold: float
-        Threshold for detection between 0 and 1. Default=0.1
-    band_detections: bool
-        Output includes bandwise detections (default=True)
-    stat_window_sizefloat
-        Statistical window size in secs (default = 10)
-    det_window_size: float
-        Number of cycles in secs (default = 4)
     mp: int
         Number of cores to use (def = 1)
+    sample_offset: int
+        Offset which is added to the final detection. This is used when the
+        function is run in separate windows. Default = 0
 
     Returns
     -------
-    df_out: pandas dataframe
-        Output dataframe with detections
+    output: list
+        List of tuples with the following structure of detections:
+        (event_start, event_stop, low_fc, high_fc, amp, fhom, dur, prod,
+         is_conglom)
+
+    Note
+    ----
+    The last object "is_conglom" in the output bool value.
+    False stands for detections in single frequency bands whereas True
+    stands for conglomerate created from detections in frequency bands that
+    overlap in time domain.
+
+    References
+    ----------
+    [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS
+    Algorithm: A Novel Method for High Frequency Oscillation Detection
+    in EEG,” J. Neurosci. Methods, vol. 293, pp. 6–16, 2017.
     """
 
-    # Create output dataframe
+    # Create output
 
-    df_out = create_output_df(fields={'low_fc': np.float,
-                                      'high_fc': np.float,
-                                      'amp': np.float,
-                                      'fhom': np.float,
-                                      'dur': np.float, 
-                                      'prod': np.float,
-                                      'type': object})
+    output = []
 
     # TODO - move the settings to a data file
 
@@ -111,26 +116,29 @@ def detect_hfo_cs_beta(data, fs, low_fc, high_fc,
                             1.04080418, 1.24382275, 1.60240884, 1.10695014,
                             1.17010383, 0.88196648, 1.04245538, 0.70917389,
                             2.21536184],
-                 'AMP_THETAS': [1.65277574, 3.48530721, 2.98961385, 11.54210813,
-                                18.93869204, 10.11982852, 10.53609476,
-                                5.91562993, 11.09205920, 8.84505258, 6.92641365,
-                                18.89938640, 23.76501855, 30.42839963,
-                                27.30653900, 22.48544327, 0.08329301],
-                 'AMP_OFFSETS': [6.41469207, 6.39345582, 6.40000914, 7.32380252,
-                                 8.32055181, 8.58559154, 8.27742490, 9.97358643,
-                                 10.49550234, 12.41888242, 15.86698463,
-                                 21.34769474, 21.89082728, 17.18456284,
-                                 18.93825748, 16.30660646, 7.69330283],
+                 'AMP_THETAS': [1.65277574, 3.48530721, 2.98961385,
+                                11.54210813, 18.93869204, 10.11982852,
+                                10.53609476, 5.91562993, 11.09205920,
+                                8.84505258, 6.92641365, 18.89938640,
+                                23.76501855, 30.42839963, 27.30653900,
+                                22.48544327, 0.08329301],
+                 'AMP_OFFSETS': [6.41469207, 6.39345582, 6.40000914,
+                                 7.32380252, 8.32055181, 8.58559154,
+                                 8.27742490, 9.97358643, 10.49550234,
+                                 12.41888242, 15.86698463, 21.34769474,
+                                 21.89082728, 17.18456284, 18.93825748,
+                                 16.30660646, 7.69330283],
                  'FHOM_KS': [1.66197234, 1.00540463, 1.79692941, 1.15586041,
                              1.02455216, 1.21727010, 1.12610054, 0.70076969,
                              0.98379084, 1.54577304, 1.51861533, 1.23976157,
                              1.43199934, 1.17238163, 0.58636256, 1.12205645,
                              0.09508500],
-                 'FHOM_THETAS': [4.71109440, 6.05698300, 3.84238418, 6.23370380,
-                                 7.89603172, 7.87712768, 8.45272550,
-                                 10.00101086, 6.58376596, 3.53488296,
-                                 5.27183305, 6.36805821, 7.56839088, 8.24757240,
-                                 14.90634368, 18.85016717, 260.59793175],
+                 'FHOM_THETAS': [4.71109440, 6.05698300, 3.84238418,
+                                 6.23370380, 7.89603172, 7.87712768,
+                                 8.45272550, 10.00101086, 6.58376596,
+                                 3.53488296, 5.27183305, 6.36805821,
+                                 7.56839088, 8.24757240, 14.90634368,
+                                 18.85016717, 260.59793175],
                  'FHOM_OFFSETS': [8.16878678, 10.55275451, 8.07166998,
                                   8.07086829, 8.94105317, 7.75703706,
                                   7.89853517, 7.14019430, 8.17322770,
@@ -142,11 +150,12 @@ def detect_hfo_cs_beta(data, fs, low_fc, high_fc,
                              1.38457279, 2.14489528, 1.35910370, 1.44452982,
                              1.89318549, 0.92291990, 0.97845756, 1.42279817,
                              0.09633877],
-                 'PROD_THETAS': [5.84241875, 2.72996718, 3.68246691, 6.69128325,
-                                 10.43308700, 11.90997028, 13.04316866,
-                                 6.93301203, 8.31241387, 4.62399907, 7.32859575,
-                                 11.79756235, 12.32143937, 26.04107818,
-                                 17.76146131, 18.81871472, 195.40205368],
+                 'PROD_THETAS': [5.84241875, 2.72996718, 3.68246691,
+                                 6.69128325, 10.43308700, 11.90997028,
+                                 13.04316866, 6.93301203, 8.31241387,
+                                 4.62399907, 7.32859575, 11.79756235,
+                                 12.32143937, 26.04107818, 17.76146131,
+                                 18.81871472, 195.40205368],
                  'PROD_OFFSETS': [16.32704840, 19.47650057, 16.18710622,
                                   16.34553372, 19.25022797, 18.30852676,
                                   18.15222002, 18.98117587, 19.84269749,
@@ -163,127 +172,94 @@ def detect_hfo_cs_beta(data, fs, low_fc, high_fc,
                                 0.00857187, 0.00499798, 0.00489236, 0.00462047,
                                 0.00532479, 0.00263985, 0.00623849, 0.01249162,
                                 0.00115305],
-                 'DUR_OFFSETS': [0.10320000, 0.09316255, 0.06500000, 0.05480000,
-                                 0.04420000, 0.03220000, 0.02820000, 0.02580000,
-                                 0.02291436, 0.01940000, 0.01760000, 0.01500000,
-                                 0.01180000, 0.01000000, 0.01180000, 0.01500000,
-                                 0.00844698]}
+                 'DUR_OFFSETS': [0.10320000, 0.09316255, 0.06500000,
+                                 0.05480000, 0.04420000, 0.03220000,
+                                 0.02820000, 0.02580000, 0.02291436,
+                                 0.01940000, 0.01760000, 0.01500000,
+                                 0.01180000, 0.01000000, 0.01180000,
+                                 0.01500000, 0.00844698]}
 
     nyquist = (fs / 2) - 1
     n_bands = len([x for x in constants['BAND_STOPS'] if x <= nyquist])
 
     edge_thresh = 0.1
 
-    df_i = 0
+    norm_coefs = [round(len(sig) / 3), round((2 * len(sig)) / 3)]
 
-    stat_win_samp = int(fs * stat_window_size)
-    norm_coefs = [round(stat_win_samp / 3), round((2 * stat_win_samp) / 3)]
-
-    start_samp = 0
-    stop_samp = start_samp + stat_win_samp
-
-    conglom_arr = np.zeros([n_bands, stat_win_samp], 'bool')
+    conglom_arr = np.zeros([n_bands, len(sig)], 'bool')
 
     # Create a pool of workers
     if mp > 1:
+
         work_pool = Pool(mp)
 
-    while stop_samp <= len(data):
+        iter_args = []
+        for band_idx in range(n_bands):
+            iter_args.append([sig, fs, norm_coefs, band_idx,
+                              cycs_per_detect, threshold,
+                              edge_thresh, constants])
 
-        x = data[start_samp:stop_samp]
+        band_concat = work_pool.map(_detect_band, iter_args)
+        work_pool.join()
 
-        if mp > 1:
+        new_dets = [res[0] for res in band_concat]
+        output += new_dets
+        event_cnt = len(new_dets)
 
-            iter_args = []
-            for band_idx in range(n_bands):
-                iter_args.append([x, fs, norm_coefs, band_idx,
-                                  cycs_per_detect, threshold,
-                                  edge_thresh, constants])
+        for band_idx in range(n_bands):
+            conglom_arr[band_idx, :] = band_concat[band_idx][1]
 
-            band_concat = work_pool.map(_detect_band, iter_args)
-            work_pool.join
+    else:
+        event_cnt = 0
+        for band_idx in range(n_bands):
 
-            new_dets_df = pd.concat([res[0] for res in band_concat])
-            df_out = pd.concat([df_out, new_dets_df])
-            event_cnt = len(new_dets_df)
+            args = [sig, fs, norm_coefs, band_idx, cycs_per_detect, threshold,
+                    edge_thresh, constants]
 
-            for band_idx in range(n_bands):
-                conglom_arr[band_idx, :] = band_concat[band_idx][1]
+            res = _detect_band(args)
+            conglom_arr[band_idx, :] = res[1]
+            event_cnt += len(res[0])
+            output += res[0]
 
+    # Create congloms
+    conglom_1d = np.sum(conglom_arr, 0)
+    new_det_idx = len(output)
+    if any(conglom_1d):
+        det_locs = np.where(conglom_1d)[0]
+        starts_det_locs = np.where(np.diff(det_locs) > 1)[0] + 1
+        stops_det_locs = np.where(np.diff(det_locs) > 1)[0]
+        if len(starts_det_locs):
+            det_starts = np.concatenate([[det_locs[0]],
+                                         det_locs[starts_det_locs]])
+            det_stops = np.concatenate([det_locs[stops_det_locs],
+                                        [det_locs[-1]]])
         else:
-            event_cnt = 0
-            for band_idx in range(n_bands):
+            det_starts = np.array([det_locs[0]])
+            det_stops = np.array([det_locs[-1]])
 
-                args = [x, fs, norm_coefs, band_idx, cycs_per_detect, threshold,
-                        edge_thresh, constants]
+        det_stops += 1
 
-                res = _detect_band(args)
-                conglom_arr[band_idx, :] = res[1]
-                event_cnt += len(res[0])
-                df_out = pd.concat([df_out, res[0]])
+        new_det_idx -= event_cnt
 
-        df_out.reset_index(drop=True, inplace=True)
+        sub_arr = np.array(output[new_det_idx:])
 
-        # Create congloms
-        conglom_1d = np.sum(conglom_arr, 0)
-        new_det_idx = len(df_out)
-        if any(conglom_1d):
-            det_locs = np.where(conglom_1d)[0]
-            starts_det_locs = np.where(np.diff(det_locs) > 1)[0] + 1
-            stops_det_locs = np.where(np.diff(det_locs) > 1)[0]
-            if len(starts_det_locs):
-                det_starts = np.concatenate([[det_locs[0]],
-                                             det_locs[starts_det_locs]])
-                det_stops = np.concatenate([det_locs[stops_det_locs],
-                                            [det_locs[-1]]])
-            else:
-                det_starts = np.array([det_locs[0]])
-                det_stops = np.array([det_locs[-1]])
+        # Insert congloms
+        for event_start, event_stop in zip(det_starts, det_stops):
+            det_arr = sub_arr[(sub_arr[:, 0] >= event_start)
+                              & (sub_arr[:, 1] <= event_stop)]
+            low_fc = det_arr[:, 2].min()
+            high_fc = det_arr[:, 3].max()
+            amp = det_arr[:, 4].max()
+            fhom = det_arr[:, 5].max()
+            prod = det_arr[:, 6].max()
+            dur = float(event_stop - event_start) / fs
 
-            det_stops += 1
-
-            new_det_idx -= event_cnt
-
-            sub_df = df_out.loc[new_det_idx:]
-
-            # Insert congloms
-            df_i = len(df_out)
-            for event_start, event_stop in zip(det_starts, det_stops):
-                det_df = sub_df.loc[(sub_df.event_start >= event_start)
-                                    & (sub_df.event_stop <= event_stop)]
-                low_fc = det_df.loc[:, 'low_fc'].min()
-                high_fc = det_df.loc[:, 'high_fc'].max()
-                amp = det_df.loc[:, 'amp'].max()
-                fhom = det_df.loc[:, 'fhom'].max()
-                prod = det_df.loc[:, 'amp'].max()
-                dur = float(event_stop - event_start) / fs
-
-                df_out.loc[df_i] = [event_start, event_stop,
-                                    low_fc, high_fc,
-                                    amp, fhom, dur, prod,
-                                    'conglom']
-
-                df_i += 1
-
-        # Reset conglom array
-        conglom_arr[:, :] = 0
-
-        # Adjust starts / stops
-        if len(df_out):
-            df_out.loc[new_det_idx:, 'event_start'] += start_samp
-            df_out.loc[new_det_idx:, 'event_stop'] += start_samp
-
-        start_samp += stat_win_samp
-        stop_samp += stat_win_samp
+            output.append((event_start+sample_offset, event_stop+sample_offset,
+                           low_fc, high_fc, amp, fhom, dur, prod, True))
 
     if mp > 1:
         work_pool.close()
-
-    if not band_detections:
-        df_out = df_out[~(df_out.type == 'band')]
-        df_out.reset_index(drop=True, inplace=True)
-
-    return df_out
+    return output
 
 # =============================================================================
 # Subfunctions
@@ -305,22 +281,17 @@ def _detect_band(args):
     constants = args[7]
 
     conglom_band = np.zeros(len(x), 'bool')
-    df_out = create_output_df(fields={'low_fc': np.float,
-                                      'high_fc': np.float,
-                                      'amp': np.float,
-                                      'fhom': np.float,
-                                      'dur': np.float, 
-                                      'prod': np.float,
-                                      'type': object})
-    df_i = 0
+    output = []
 
     wind_secs = cycs_per_detect / constants['BAND_CENTERS'][band_idx]
 
     b, a = butter(3, [(constants['BAND_CENTERS'][band_idx] / 4) / (fs / 2),
-                      constants['BAND_STOPS'][band_idx] / (fs / 2)], 'bandpass')
+                      constants['BAND_STOPS'][band_idx] / (fs / 2)],
+                  'bandpass')
     bp_x = filtfilt(b, a, x)
     b, a = butter(3, [constants['BAND_STARTS'][band_idx] / (fs / 2),
-                      constants['BAND_STOPS'][band_idx] / (fs / 2)], 'bandpass')
+                      constants['BAND_STOPS'][band_idx] / (fs / 2)],
+                  'bandpass')
     np_x = filtfilt(b, a, x)
 
     h = hilbert(np_x)
@@ -431,20 +402,16 @@ def _detect_band(args):
 
             conglom_band[event_start:event_stop] = 1
 
-            #Put in output-df
-            df_out.loc[df_i] = [event_start, event_stop,
-                                constants['BAND_STARTS'][band_idx],
-                                constants['BAND_STOPS'][band_idx],
-                                amp, fhom, dur, prod,
-                                'band']
-
-            df_i += 1
-
+            # Put in output-df
+            output.append((event_start, event_stop,
+                           constants['BAND_STARTS'][band_idx],
+                           constants['BAND_STOPS'][band_idx],
+                           amp, fhom, dur, prod, False))
         else:
 
             j += 1
 
-    return [df_out, conglom_band]
+    return [output, conglom_band]
 
 
 def _inverse_gamma_cdf(p, k, theta, offset):
@@ -457,26 +424,32 @@ def _inverse_gamma_cdf(p, k, theta, offset):
 
     return x
 
-def _sliding_snr(np_x, bp_x, Fs, wind_secs):
+
+def _sliding_snr(np_x, bp_x, fs, wind_secs):
     """
     "Signal-to-noise ratio" like metric that compares narrow band and broad
     band signals to eliminate increased power generated by sharp transients.
 
-    Parameters:
-    -----------
-    np_x - narrow band signal\n
-    bp_x - broad band signal\n
-    fs - sampling frequency\n
-    wind_secs - sliding window size (seconds)\n
+    Parameters
+    ----------
+    np_x: np.ndarray
+      Narrow band signal
+    bp_x: np.ndarray
+      Broad band signal
+    fs: float
+      Sampling frequency
+    wind_secs: float
+      Sliding window size (seconds)
 
-    Returns:
-    --------
-    snr - "Signal-to-noise ratio" like metric
+    Returns
+    -------
+    snr: np.ndarray
+      "Signal-to-noise ratio" like metric
 
     """
 
     # Define starting values
-    wind = Fs * wind_secs
+    wind = fs * wind_secs
     half_wind = int(round(wind / 2))
     wind = int(round(wind))
 
@@ -550,3 +523,52 @@ def _sliding_snr(np_x, bp_x, Fs, wind_secs):
     snr[-half_wind:] = snr[-(half_wind + 1)]
 
     return snr
+
+
+class CSDetector(Method):
+
+    def __init__(self, **kwargs):
+        """
+        Beta version of CS detection algorithm. Which was used to develop
+        CS detection algorithm.
+
+        Parameters
+        ----------
+        fs: int
+            Signal sampling frequency
+        threshold: float
+            Threshold for detection between 0 and 1 (Default=0.1)
+        cycs_per_detect: float
+            Minimal number of cycles threshold. (Default=4)
+        low_fc: float
+            Low cut-off frequency
+        high_fc: float
+            High cut-off frequency
+        mp: int
+            Number of cores to use (def = 1)
+        sample_offset: int
+            Offset which is added to the final detection. This is used when the
+            function is run in separate windows. Default = 0
+
+        References
+        ----------
+        [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS
+        Algorithm: A Novel Method for High Frequency Oscillation Detection
+        in EEG,” J. Neurosci. Methods, vol. 293, pp. 6–16, 2017.
+        """
+
+        super().__init__(detect_hfo_cs_beta, **kwargs)
+
+        self.algorithm = 'CS_DETECTOR'
+        self.version = '1.0.0b1'
+        self.dtype = [('event_start', 'int32'),
+                      ('event_stop', 'int32'),
+                      ('low_fc', 'float32'),
+                      ('high_fc', 'float32'),
+                      ('amp', 'float32'),
+                      ('fhom', 'float32'),
+                      ('dur', 'float32'),
+                      ('prod', 'float32'),
+                      ('type', 'bool')]
+
+        self._window_indices = False

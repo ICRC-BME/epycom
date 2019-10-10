@@ -4,103 +4,108 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
+from math import isclose
 
 # Third pary imports
-import numpy as np
+from scipy.signal import butter, filtfilt
 
 # Local imports
-from epycom.event_detection import detect_spikes_barkmeier
+from epycom.event_detection import BarkmeierDetector
 
-from epycom.event_detection import (detect_hfo_ll,
-                                    detect_hfo_rms,
-                                    detect_hfo_hilbert,
-                                    detect_hfo_cs_beta)
+from epycom.event_detection import (LineLengthDetector,
+                                    RootMeanSquareDetector,
+                                    HilbertDetector,
+                                    CSDetector)
 
 
 # ----- Spikes -----
 def test_detect_spikes(create_testing_eeg_data, benchmark):
-    data = create_testing_eeg_data
-    fs = 5000
-    spike_df = benchmark(detect_spikes_barkmeier, data, fs, 10)
+    compute_instance = BarkmeierDetector()
+    dets = benchmark(compute_instance.run_windowed,
+                     create_testing_eeg_data, 50000)
 
-    assert int(spike_df.loc[0, 'event_peak']) == 20242
-    assert round(spike_df.loc[0, 'event_amp'], 5) == 1368.23346
-    assert round(spike_df.loc[0, 'left_amp'], 5) == 1517.99373
-    assert spike_df.loc[0, 'left_dur'] == 0.05
-    assert round(spike_df.loc[0, 'right_amp'], 5) == 1486.87514
-    assert spike_df.loc[0, 'right_dur'] == 0.0376
+    expected_vals = (20242,
+                     1368.2334,
+                     1517.9938,
+                     0.05,
+                     1486.8751,
+                     0.0376)
+
+    for exp_val, det in zip(expected_vals, dets[0]):
+        assert isclose(det, exp_val, abs_tol=10e-5)
 
 
 # ----- HFO -----
 def test_detect_hfo_ll(create_testing_eeg_data, benchmark):
-    data = create_testing_eeg_data
     fs = 5000
-    low_fc = 80
-    high_fc = 600
-    threshold = 3
-    window_size = 1 / 80
-    window_overlap = 0.25
+    b, a = butter(3, [80 / (fs / 2), 600 / (fs / 2)], 'bandpass')
+    filt_data = filtfilt(b, a, create_testing_eeg_data)
+    window_size = int((1 / 80) * fs)
 
-    hfo_df = benchmark(detect_hfo_ll,
-                       data, fs, low_fc, high_fc, threshold,
-                       window_size, window_overlap)
+    compute_instance = LineLengthDetector()
+    compute_instance.params = {'window_size': window_size}
+    dets = benchmark(compute_instance.run_windowed,
+                     filt_data, 50000)
 
-    assert hfo_df.loc[0, 'event_start'] == 5040
-    assert hfo_df.loc[0, 'event_stop'] == 5199
+    expected_vals = [(5040, 5198),
+                     (34992, 35134)]
 
-    assert hfo_df.loc[1, 'event_start'] == 34992
-    assert hfo_df.loc[1, 'event_stop'] == 35135
+    for exp_val, det in zip(expected_vals, dets):
+        assert det[0] == exp_val[0]
+        assert det[1] == exp_val[1]
 
 
 def test_detect_hfo_rms(create_testing_eeg_data, benchmark):
-    data = create_testing_eeg_data
     fs = 5000
-    low_fc = 80
-    high_fc = 600
-    threshold = 3
-    window_size = 1 / 80
-    window_overlap = 0.25
+    b, a = butter(3, [80 / (fs / 2), 600 / (fs / 2)], 'bandpass')
+    filt_data = filtfilt(b, a, create_testing_eeg_data)
+    window_size = int((1 / 80) * fs)
 
-    hfo_df = benchmark(detect_hfo_rms,
-                       data, fs, low_fc, high_fc, threshold,
-                       window_size, window_overlap)
+    compute_instance = RootMeanSquareDetector()
+    compute_instance.params = {'window_size': window_size}
+    dets = benchmark(compute_instance.run_windowed,
+                     filt_data, 50000)
 
-    assert hfo_df.loc[0, 'event_start'] == 5040
-    assert hfo_df.loc[0, 'event_stop'] == 5207
+    expected_vals = [(5040, 5198),
+                     (35008, 35134)]
 
-    assert hfo_df.loc[1, 'event_start'] == 35010
-    assert hfo_df.loc[1, 'event_stop'] == 35132
+    for exp_val, det in zip(expected_vals, dets):
+        assert det[0] == exp_val[0]
+        assert det[1] == exp_val[1]
 
 
 def test_detect_hfo_hilbert(create_testing_eeg_data, benchmark):
-    data = create_testing_eeg_data
-    fs = 5000
-    low_fc = 80
-    high_fc = 600
-    threshold = 7
+    compute_instance = HilbertDetector()
+    compute_instance.params = {'fs': 5000,
+                               'low_fc': 80,
+                               'high_fc': 600,
+                               'threshold': 7}
+    dets = benchmark(compute_instance.run_windowed,
+                     create_testing_eeg_data, 50000)
+    print(dets)
+    expected_vals = [(5056, 5123),
+                     (35028, 35063)]
 
-    hfo_df = benchmark(detect_hfo_hilbert,
-                       data, fs, low_fc, high_fc, threshold)
-
-    assert int(hfo_df.loc[0, 'event_start']) == 5056
-    assert int(hfo_df.loc[0, 'event_stop']) == 5123
-
-    assert int(hfo_df.loc[1, 'event_start']) == 35028
-    assert int(hfo_df.loc[1, 'event_stop']) == 35063
+    for exp_val, det in zip(expected_vals, dets):
+        assert det[0] == exp_val[0]
+        assert det[1] == exp_val[1]
 
 
 def test_detect_hfo_cs_beta(create_testing_eeg_data, benchmark):
-    data = create_testing_eeg_data
-    fs = 5000
-    low_fc = 40
-    high_fc = 1000
-    threshold = 0.1
-    band_detections = False
+    compute_instance = CSDetector()
+    compute_instance.params = {'fs': 5000,
+                               'low_fc': 40,
+                               'high_fc': 1000,
+                               'threshold': 0.1,
+                               'cycs_per_detect': 4.0}
 
-    hfo_df = benchmark(detect_hfo_cs_beta,
-                       data, fs, low_fc, high_fc, threshold, band_detections)
+    dets = benchmark(compute_instance.run_windowed,
+                     create_testing_eeg_data, 50000)
 
     # Only the second HFO is caught by CS (due to signal artificiality)
-    assert int(hfo_df.loc[0, 'event_start']) == 34992
-    assert int(hfo_df.loc[0, 'event_stop']) == 35090
+    expected_vals = [(34992, 35090),  # Band detection
+                     (34992, 35090)]  # Conglomerate detection
 
+    for exp_val, det in zip(expected_vals, dets):
+        assert det[0] == exp_val[0]
+        assert det[1] == exp_val[1]

@@ -5,67 +5,58 @@
 
 
 # Std imports
+from math import isclose
 
 # Third pary imports
-import pytest
 
 # Local imports
-from epycom.univariate import (compute_signal_stats,
-                               compute_fac,
-                               compute_pac,
-                               compute_pse,
-                               compute_lyapunov_exp,
-                               compute_hjorth_complexity,
-                               compute_hjorth_mobility)
+from epycom.univariate import (SignalStats,
+                               PowerSpectralEntropy,
+                               LyapunovExponent,
+                               HjorthMobility,
+                               HjorthComplexity)
 
 
 def test_signal_stats(create_testing_data, benchmark):
-    ch = create_testing_data
-    stats = benchmark(compute_signal_stats, ch)
+    compute_instance = SignalStats()
+    stats = benchmark(compute_instance.run_windowed,
+                      create_testing_data, 50000)
 
-    expected_vals = [6.68954,
+    expected_vals = (6.68954,
                      5.0,
                      2.32213,
                      67.65263,
                      0.0,
                      0.49719,
-                     7.05092]
+                     7.05092)
 
-    for exp_stat, stat in zip(expected_vals, stats):
-        assert round(stat, 5) == exp_stat
-
-
-def test_fac(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_fac, ch, 5000), 5)
-    assert res == -0.00019
-
-
-def test_pac(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_pac, ch, 5000), 5)
-    assert res == 0.01189
+    for exp_stat, stat in zip(expected_vals, list(stats[0])[2:]):
+        assert isclose(stat, exp_stat, abs_tol=10e-6)
 
 
 def test_pse(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_pse, ch), 5)
-    assert res == 4.32193
+    compute_instance = PowerSpectralEntropy()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 4.32193, abs_tol=10e-6)
 
 
-def test_lyap_large(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_lyapunov_exp, ch[0:5000], sample_lag=25), 5)
-    assert res == 5.79481
+def test_lyapunov_exponent(create_testing_data, benchmark):
+    compute_instance = LyapunovExponent(sample_lag=25)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data[:5000], 5000)
+    assert isclose(res[0][2], 5.794813, abs_tol=10e-6)
 
 
 def test_hjorth_mobility(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_hjorth_mobility, ch, 5000), 5)
-    assert res == 3113.28291
+    compute_instance = HjorthMobility(fs=5000)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 3113.283, abs_tol=10e-3)
 
 
 def test_hjorth_complexity(create_testing_data, benchmark):
-    ch = create_testing_data
-    res = round(benchmark(compute_hjorth_complexity, ch, 5000), 5)
-    assert res == 2.27728
+    compute_instance = HjorthComplexity(fs=5000)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 2.27728, abs_tol=10e-6)

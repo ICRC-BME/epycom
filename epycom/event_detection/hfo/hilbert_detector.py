@@ -11,21 +11,21 @@ import numpy as np
 from scipy.signal import butter, hilbert, filtfilt
 
 # Local imports
-from ...utils.data_operations import create_output_df
 from ...validation.util import check_detection_overlap
+from ...utils.method import Method
 
 
-def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
+def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
                        window=10, window_overlap=0,
                        band_spacing='linear', num_bands=300,
-                       cyc_th=1, gap_th=1, mp=1):
+                       cyc_th=1, gap_th=1, mp=1, sample_offset=0):
     """
     Slightly modified algorithm which uses the 2D HFO hilbert detection
-    used in {Kucewicz et al. 2014}
+    used in Kucewicz et al. 2014.
 
     Parameters
     ----------
-    data: numpy array
+    sig: numpy array
         1D numpy array with EEG data
     fs: float
         Sampling frequency of the signal
@@ -35,40 +35,40 @@ def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
         High cut-off frequency
     threshold: float
         Threshold for detection (default=3)
-    window: float
-        Statstical window in secs
-    window_overlap: float
-        Statistical window overlap (default=0, range 0-1)
     band_spacing: str
         Spacing of hilbert freqeuncy bands - options: 'linear' or 'log'
         (default='linear'). Linear provides better frequency resolution but
-        is slower. 
+        is slower.
     num_bands: int
         Number of bands if band_spacing = log (default=300)
     cyc_th: float
         Minimum number of cycles to detect (deafult=1)
     gap_th: float
-        Number of cycles for gaps (default1)
+        Number of cycles for gaps (default=1)
     mp: int
-        Number of cores to use (def = 1)
+        Number of cores to use (default=1)
+    sample_offset: int
+        Offset which is added to the final detection. This is used when the
+        function is run in separate windows. Default = 0
 
-    Returns:
-    ---------
-        df_out(pandas.DataFrame) - output dataframe with detections
+    Returns
+    -------
+    output: list
+        List of tuples with the follwoing structure of detections:
+        (event_start, event_stop, freq_min, freq_max, freq_at_max,
+         max_amplitude)
+
+    References
+    ----------
+    [1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann,
+    M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and
+    G. A. Worrell, “High frequency oscillations are associated with cognitive
+    processing in human recognition memory.,” Brain, pp. 1–14, Jun. 2014.
     """
 
     # Create output dataframe
 
-    df_out = create_output_df(fields={'freq_min': np.float,
-                                      'freq_max': np.float,
-                                      'freq_at_max': np.float,
-                                      'max_amplitude': np.float})
-
-    # Initial values
-    win_start = 0
-    win_size = int(window * fs)
-
-    df_idx = 0
+    output = []
 
     # Construct filter cut offs
 
@@ -87,58 +87,49 @@ def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
         work_pool = Pool(mp)
 
     # Start the looping
-    while win_start + win_size <= len(data):
-        print((win_start / len(data)) * 100, "% done")
-        win_end = win_start + win_size
+    tdetects_concat = []
+    if mp > 1:
 
-        x = data[win_start:win_end]
+        # Run the filters in their threads and return the result
+        iter_mat = [(sig, fs, i, coffs[i], coffs[i + 1],
+                     cyc_th, gap_th, threshold) for i in range(freq_span)]
+        tdetects_concat = work_pool.map(_band_z_score_detect, iter_mat)
 
-        tdetects_concat = []
-        if mp > 1:
+    else:
+        # OPTIMIZE - check if there is a better way to do this (S transform?+
+        # spectra zeroing?)
+        for i in range(freq_span):
+            bot = coffs[i]
+            top = coffs[i + 1]
 
-            # Run the filters in their threads and return the result
-            iter_mat = [(x, fs, i, coffs[i], coffs[i + 1],
-                         cyc_th, gap_th, threshold) for i in range(freq_span)]
-            tdetects_concat = work_pool.map(_band_z_score_detect, iter_mat)
+            args = [sig, fs, i, bot, top, cyc_th, gap_th, threshold]
 
-        else:
-            for i in range(freq_span):
-                bot = coffs[i]
-                top = coffs[i + 1]
+            tdetects_concat.append(_band_z_score_detect(args))
 
-                args = [x, fs, i, bot, top, cyc_th, gap_th, threshold]
+    # Process detects
+    detects = np.array([det for band in tdetects_concat for det in band])
 
-                tdetects_concat.append(_band_z_score_detect(args))
+    outlines = []
+    if len(detects):
+        while sum(detects[:, 0] != 0):
+            det_idx = np.where(detects[:, 0] != 0)[0][0]
+            HFO_outline = []
+            outlines.append(np.array(_run_detect_branch(detects,
+                                                        det_idx,
+                                                        HFO_outline)))
 
-         # Process detects
-        detects = np.array([det for band in tdetects_concat for det in band])
+    # Get the detections
+    for outline in outlines:
+        start = min(outline[:, 1])
+        stop = max(outline[:, 2])
+        freq_min = coffs[int(outline[0, 0])]
+        freq_max = coffs[int(outline[-1, 0])]
+        frequency_at_max = coffs[int(outline[np.argmax(outline[:, 3]), 0])]
+        max_amplitude = max(outline[:, 3])
 
-        outlines = []
-        if len(detects):
-            while sum(detects[:, 0] != 0):
-                det_idx = np.where(detects[:, 0] != 0)[0][0]
-                HFO_outline = []
-                outlines.append(np.array(_run_detect_branch(detects,
-                                                            det_idx,
-                                                            HFO_outline)))
-
-        # Get the detections
-        for outline in outlines:
-            start = min(outline[:, 1])
-            stop = max(outline[:, 2])
-            freq_min = coffs[int(outline[0, 0])]
-            freq_max = coffs[int(outline[-1, 0])]
-            frequency_at_max = coffs[int(outline[np.argmax(outline[:, 3]), 0])]
-            max_amplitude = max(outline[:, 3])
-
-            event_start = int(start + win_start)
-            event_stop = int(stop + win_start)
-            df_out.loc[df_idx] = [event_start, event_stop,
-                                  freq_min, freq_max, frequency_at_max,
-                                  max_amplitude]
-            df_idx += 1
-
-        win_start += win_size
+        output.append((start+sample_offset, stop+sample_offset,
+                       freq_min, freq_max, frequency_at_max,
+                       max_amplitude))
 
         # Plot the image
 # if plot_flag:
@@ -156,7 +147,7 @@ def detect_hfo_hilbert(data, fs, low_fc, high_fc, threshold=3,
     if mp > 1:
         work_pool.close()
 
-    return df_out
+    return output
 
 # =============================================================================
 # Subfunctions
@@ -249,7 +240,6 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
     else:
         # Get overllaping detects
         for next_det_idx in next_band_idcs[0]:
-            #detection = detects[0]
             if check_detection_overlap([detects[det_idx, 1], detects[det_idx,
                                                                      2]],
                                        [detects[next_det_idx, 1],
@@ -260,3 +250,59 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
 
         detects[det_idx, 0] = 0
         return HFO_outline
+
+
+class HilbertDetector(Method):
+
+    def __init__(self, **kwargs):
+        """
+        Slightly modified algorithm which uses the 2D HFO hilbert detection
+        used in Kucewicz et al. 2014.
+
+        Parameters
+        ----------
+        fs: float
+            Sampling frequency of the signal
+        low_fc: float
+            Low cut-off frequency
+        high_fc: float
+            High cut-off frequency
+        threshold: float
+            Threshold for detection (default=3)
+        band_spacing: str
+            Spacing of hilbert freqeuncy bands - options: 'linear' or 'log'
+            (default='linear'). Linear provides better frequency resolution but
+            is slower.
+        num_bands: int
+            Number of bands if band_spacing = log (default=300)
+        cyc_th: float
+            Minimum number of cycles to detect (deafult=1)
+        gap_th: float
+            Number of cycles for gaps (default=1)
+        mp: int
+            Number of cores to use (default=1)
+        sample_offset: int
+            Offset which is added to the final detection. This is used when the
+            function is run in separate windows. Default = 0
+
+        References
+        ----------
+        [1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann,
+        M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and
+        G. A. Worrell, “High frequency oscillations are associated with
+        cognitive processing in human recognition memory.,” Brain, pp. 1–14,
+        Jun. 2014.
+        """
+
+        super().__init__(detect_hfo_hilbert, **kwargs)
+
+        self.algorithm = 'HILBERT_DETECTOR'
+        self.version = '1.0.0'
+        self.dtype = [('event_start', 'int32'),
+                      ('event_stop', 'int32'),
+                      ('freq_min', 'float32'),
+                      ('freq_max', 'float32'),
+                      ('freq_at_max', 'float32'),
+                      ('max_amplitude', 'float32')]
+
+        self._window_indices = False

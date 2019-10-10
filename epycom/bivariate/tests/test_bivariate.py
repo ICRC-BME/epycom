@@ -5,63 +5,64 @@
 
 
 # Std imports
+from math import isclose
 
 # Third pary imports
 
 # Local imports
-from epycom.bivariate import (compute_lincorr,
-                              compute_spect_multp,
-                              compute_relative_entropy,
-                              compute_phase_sync,
-                              compute_phase_const,
-                              compute_pli)
+from epycom.bivariate import (LinearCorrelation,
+                              SpectraMultiplication,
+                              RelativeEntropy,
+                              PhaseSynchrony,
+                              PhaseConsistency,
+                              PhaseLagIndex)
 
 
 def test_lincorr(create_testing_data, benchmark):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
-    res = round(benchmark(compute_lincorr, ch_1, ch_2)[0][0], 5)
-    assert (res == 0)
+    compute_instance = LinearCorrelation()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+
+    assert isclose(res[0][2], 0, abs_tol=10-6)
 
 
 def test_spect_multp(create_testing_data, benchmark):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
+    compute_instance = SpectraMultiplication()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
 
-    sm_mean, sm_std = benchmark(compute_spect_multp, ch_1, ch_2)
-    sm_mean = round(sm_mean, 5)
-    sm_std = round(sm_std, 5)
-
-    assert ((sm_mean, sm_std) == (70522.64105, 35728.93925))
+    assert isclose(res[0][2], 70522.64105, abs_tol=10-6)
+    assert isclose(res[0][3], 35728.93925, abs_tol=10-6)
 
 
 def test_relative_entropy(create_testing_data, benchmark):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
-    res = round(benchmark(compute_relative_entropy, ch_1, ch_2), 5)
-    assert (res == 0.17262)
+    compute_instance = RelativeEntropy()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+
+    assert isclose(res[0][2], 0.17262, abs_tol=10-6)
 
 
 def test_phase_sync(create_testing_data, benchmark):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
-    res = round(benchmark(compute_phase_sync, ch_1, ch_2), 5)
-    assert (res == 1.0)
+    compute_instance = PhaseSynchrony()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 1.0, abs_tol=10-6)
 
 
 def test_phase_const(create_testing_data, benchmark):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
-    res = round(benchmark(compute_phase_const, ch_1, ch_2, lag, lag_step), 5)
-    assert (res == 0.41204)
+    compute_instance = PhaseConsistency(lag=lag, lag_step=lag_step)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 0.41203687, abs_tol=10-6)
 
 
 def test_pli(create_testing_data, benchmark):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
-    res = round(benchmark(compute_pli, ch_1, ch_2, lag, lag_step)[0][0], 5)
-    assert (res == 1.0)
+    compute_instance = PhaseLagIndex(lag=lag, lag_step=lag_step)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 1.0, abs_tol=10-6)

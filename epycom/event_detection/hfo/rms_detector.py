@@ -8,74 +8,73 @@
 
 # Third pary imports
 import numpy as np
-from scipy.signal import butter, filtfilt
 
 # Local imports
-from epycom.utils.signal_transforms import compute_rms
-from epycom.utils.thresholds import th_std
-from epycom.utils.data_operations import create_output_df
+from ...utils.signal_transforms import compute_rms
+from ...utils.thresholds import th_std
+from ...utils.method import Method
 
 
-def detect_hfo_rms(data, fs, low_fc, high_fc,
-                   threshold, window_size, window_overlap):
+def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
+                   window_overlap=0.25, sample_offset=0):
     """
-    Root mean square detection algorithm {Staba et al. 2002, Blanco et al 2010}.
+    Root mean square detection algorithm {Staba et al. 2002,
+    Blanco et al 2010}.
 
     Parameters
     ----------
-    data: numpy array
-        1D array with raw data
+    sig: np.ndarray
+        1D array with raw data (already filtered if required)
     fs: int
         Sampling frequency
-    low_fc: float
-        Low cut-off frequency
-    high_fc: float
-        High cut-off frequency
-    window_size: float
-        Sliding window size in seconds
+    threshold: float
+        Number of standard deviations to use as a threshold
+    window_size: int
+        Sliding window size in samples
     window_overlap: float
         Fraction of the window overlap (0 to 1)
+    sample_offset: int
+        Offset which is added to the final detection. This is used when the
+        function is run in separate windows. Default = 0
 
-    Returns:
-    --------
-    df_out: pandas dataframe
-        Output dataframe with detections
+    Returns
+    -------
+    output: list
+        List of tuples with the following structure:
+        (event_start, event_stop)
+
+    References
+    ----------
+    [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel,
+    “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz)
+    Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,”
+    J. Neurophysiol., vol. 88, pp. 1743–1752, 2002.
     """
 
     # Calculate window values for easier operation
-    samp_win_size = int(window_size * fs)
-    samp_win_inc = int(samp_win_size * window_overlap)
+    window_increment = int(np.ceil(window_size * window_overlap))
 
-    # Create output dataframe
-    df_out = create_output_df()
+    output = []
 
-    # Filter the signal
-    b, a = butter(3, [low_fc / (fs / 2), high_fc / (fs / 2)], 'bandpass')
-    filt_data = filtfilt(b, a, data)
-
-    # Transform the signal - one sample window shift
-
-    #LL = compute_line_lenght(filt_data, window_size*fs)
-
-    # Alternative approach - overlapping window
+    # Overlapping window
 
     win_start = 0
-    win_stop = window_size * fs
-    n_windows = int(np.ceil((len(data) - samp_win_size) / samp_win_inc)) + 1
-    RMS = np.zeros(n_windows)
+    win_stop = window_size
+    n_windows = int(np.ceil((len(sig) - window_size) / window_increment)) + 1
+    RMS = np.empty(n_windows)
     RMS_i = 0
-    while win_start < len(filt_data):
-        if win_stop > len(filt_data):
-            win_stop = len(filt_data)
+    while win_start < len(sig):
+        if win_stop > len(sig):
+            win_stop = len(sig)
 
-        RMS[RMS_i] = compute_rms(filt_data[int(win_start):int(win_stop)],
-                                 samp_win_size)[0]
+        RMS[RMS_i] = compute_rms(sig[int(win_start):int(win_stop)],
+                                 window_size)[0]
 
-        if win_stop == len(filt_data):
+        if win_stop == len(sig):
             break
 
-        win_start += samp_win_inc
-        win_stop += samp_win_inc
+        win_start += window_increment
+        win_stop += window_increment
 
         RMS_i += 1
 
@@ -84,25 +83,62 @@ def detect_hfo_rms(data, fs, low_fc, high_fc,
 
     # Detect
     RMS_idx = 0
-    df_idx = 0
     while RMS_idx < len(RMS):
         if RMS[RMS_idx] >= det_th:
-            event_start = RMS_idx * samp_win_inc
+            event_start = RMS_idx * window_increment
             while RMS_idx < len(RMS) and RMS[RMS_idx] >= det_th:
                 RMS_idx += 1
-            event_stop = (RMS_idx * samp_win_inc) + samp_win_size
+            event_stop = (RMS_idx * window_increment) + window_size
 
-            if event_stop > len(data):
-                event_stop = len(data)
+            if event_stop > len(sig):
+                event_stop = len(sig)
 
             # Optional feature calculations can go here
 
-            # Write into dataframe
-            df_out.loc[df_idx] = [event_start, event_stop]
-            df_idx += 1
+            # Write into output
+            output.append((event_start+sample_offset,
+                           event_stop+sample_offset))
 
             RMS_idx += 1
         else:
             RMS_idx += 1
 
-    return df_out
+    return output
+
+
+class RootMeanSquareDetector(Method):
+
+    def __init__(self, **kwargs):
+        """
+        Root mean square detection algorithm.
+
+        Parameters
+        ----------
+        fs: int
+            Sampling frequency
+        threshold: float
+            Number of standard deviations to use as a threshold
+        window_size: int
+            Sliding window size in samples
+        window_overlap: float
+            Fraction of the window overlap (0 to 1)
+        sample_offset: int
+            Offset which is added to the final detection. This is used when the
+            function is run in separate windows. Default = 0
+
+        References
+        ----------
+        [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel,
+        “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz)
+        Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,”
+        J. Neurophysiol., vol. 88, pp. 1743–1752, 2002.
+        """
+
+        super().__init__(detect_hfo_rms, **kwargs)
+
+        self.algorithm = 'ROOTMEANSQUARE_DETECTOR'
+        self.version = '1.0.0'
+        self.dtype = [('event_start', 'int32'),
+                      ('event_stop', 'int32')]
+
+        self._window_indices = False

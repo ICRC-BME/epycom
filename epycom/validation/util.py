@@ -30,8 +30,8 @@ def match_detections(gs_df, dd_df, bn, freq_name=None,
         Number representing one second of signal - this can
         significantly imporove the speed of this function
     sec_margin: int
-        Margin for creating subsets of compared data - should be set
-        according to the legnth of compared events (1s for HFO should be enough)
+        Margin for creating subsets of compared data - should be set according
+        to the legnth of compared events (1s for HFO should be enough)
 
     Returns
     -------
@@ -45,8 +45,10 @@ def match_detections(gs_df, dd_df, bn, freq_name=None,
         matched_idcs = []
         gs = [row_gs[1][bn[0]], row_gs[1][bn[1]]]
         if sec_unit:  # We can create subset - significant speed improvement
-            for row_dd in dd_df[(dd_df[bn[0]] < gs[0] + sec_unit * sec_margin) &
-                                (dd_df[bn[0]] > gs[0] - sec_unit * sec_margin)].iterrows():
+            for row_dd in dd_df[(dd_df[bn[0]] < gs[0]
+                                + sec_unit * sec_margin) &
+                                (dd_df[bn[0]] > gs[0]
+                                - sec_unit * sec_margin)].iterrows():
                 dd = [row_dd[1][bn[0]], row_dd[1][bn[1]]]
                 if check_detection_overlap(gs, dd):
                     matched_idcs.append(row_dd[0])
@@ -61,13 +63,17 @@ def match_detections(gs_df, dd_df, bn, freq_name=None,
         elif len(matched_idcs) == 1:
             match_df.loc[match_df_idx] = [row_gs[0], matched_idcs[0]]
         else:
-            if freq_name:  # In rare event of multiple overlaps - get the closest in frequency domain
+            # In rare event of multiple overlaps get the closest frequency
+            if freq_name:
                 dd_idx = (
-                    abs(dd_df.loc[matched_idcs, freq_name] - row_gs[1][freq_name])).idxmin()
+                    abs(dd_df.loc[matched_idcs, freq_name]
+                        - row_gs[1][freq_name])).idxmin()
                 match_df.loc[match_df_idx] = [row_gs[0], dd_idx]
-            else:  # Get the detection with closest event start - less precision than frequency
+            # Closest event start - less precision than frequency
+            else:
                 dd_idx = (
-                    abs(dd_df.loc[matched_idcs, bn[0]] - row_gs[1][bn[0]])).idxmin()
+                    abs(dd_df.loc[matched_idcs, bn[0]]
+                        - row_gs[1][bn[0]])).idxmin()
                 match_df.loc[match_df_idx] = [row_gs[0], dd_idx]
 
         match_df_idx += 1
@@ -95,13 +101,14 @@ def check_detection_overlap(gs, dd):
 
     overlap = False
 
-    if (dd[1] >= gs[0]) and (dd[1] <= gs[1]):  # dd stop in gs + (dd inside gs)
+    # dd stop in gs + (dd inside gs)
+    if (dd[1] >= gs[0]) and (dd[1] <= gs[1]):
         overlap = True
-
-    if (dd[0] >= gs[0]) and (dd[0] <= gs[1]):  # dd start in gs + (dd inside gs)
+    # dd start in gs + (dd inside gs)
+    if (dd[0] >= gs[0]) and (dd[0] <= gs[1]):
         overlap = True
-
-    if (dd[0] <= gs[0]) and (dd[1] >= gs[1]):  # gs inside dd
+    # gs inside dd
+    if (dd[0] <= gs[0]) and (dd[1] >= gs[1]):
         overlap = True
 
     return overlap

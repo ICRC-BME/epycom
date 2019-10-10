@@ -9,9 +9,10 @@
 
 # Local imports
 
+
 def try_jit_decorate(jit_kwargs):
-	try:
-		from numba import jit
-		return jit(**jit_kwargs)
-	except ImportError:
-		return lambda x: x
+    try:
+        from numba import jit
+        return jit(**jit_kwargs)
+    except ImportError:
+        return lambda x: x
