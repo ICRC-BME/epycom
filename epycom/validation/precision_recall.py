@@ -160,8 +160,8 @@ def calculate_f_score(gs_df, dd_df, bn, sec_unit=None, sec_margin=1):
             gs_df.loc[gs_row[0], 'match'] = True
 
     # We ge number of unmatched detections
-    FN = len(gs_df[gs_df['match'] is False])
-    FP = len(dd_df[dd_df['match'] is False])
+    FN = len(gs_df[gs_df['match'] == False])
+    FP = len(dd_df[dd_df['match'] == False])
 
     # Calculate precision and recall
     precision = TP / (TP + FP)
