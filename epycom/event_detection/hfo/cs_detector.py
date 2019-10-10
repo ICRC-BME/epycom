@@ -75,7 +75,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
     mp: int
         Number of cores to use (def = 1)
     sample_offset: int
-        Offset which is added to the final detection. This is used when the 
+        Offset which is added to the final detection. This is used when the
         function is run in separate windows. Default = 0
 
     Returns
@@ -94,8 +94,8 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
 
     References
     ----------
-    [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS 
-    Algorithm: A Novel Method for High Frequency Oscillation Detection 
+    [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS
+    Algorithm: A Novel Method for High Frequency Oscillation Detection
     in EEG,” J. Neurosci. Methods, vol. 293, pp. 6–16, 2017.
     """
 
@@ -116,26 +116,29 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
                             1.04080418, 1.24382275, 1.60240884, 1.10695014,
                             1.17010383, 0.88196648, 1.04245538, 0.70917389,
                             2.21536184],
-                 'AMP_THETAS': [1.65277574, 3.48530721, 2.98961385, 11.54210813,
-                                18.93869204, 10.11982852, 10.53609476,
-                                5.91562993, 11.09205920, 8.84505258, 6.92641365,
-                                18.89938640, 23.76501855, 30.42839963,
-                                27.30653900, 22.48544327, 0.08329301],
-                 'AMP_OFFSETS': [6.41469207, 6.39345582, 6.40000914, 7.32380252,
-                                 8.32055181, 8.58559154, 8.27742490, 9.97358643,
-                                 10.49550234, 12.41888242, 15.86698463,
-                                 21.34769474, 21.89082728, 17.18456284,
-                                 18.93825748, 16.30660646, 7.69330283],
+                 'AMP_THETAS': [1.65277574, 3.48530721, 2.98961385,
+                                11.54210813, 18.93869204, 10.11982852,
+                                10.53609476, 5.91562993, 11.09205920,
+                                8.84505258, 6.92641365, 18.89938640,
+                                23.76501855, 30.42839963, 27.30653900,
+                                22.48544327, 0.08329301],
+                 'AMP_OFFSETS': [6.41469207, 6.39345582, 6.40000914,
+                                 7.32380252, 8.32055181, 8.58559154,
+                                 8.27742490, 9.97358643, 10.49550234,
+                                 12.41888242, 15.86698463, 21.34769474,
+                                 21.89082728, 17.18456284, 18.93825748,
+                                 16.30660646, 7.69330283],
                  'FHOM_KS': [1.66197234, 1.00540463, 1.79692941, 1.15586041,
                              1.02455216, 1.21727010, 1.12610054, 0.70076969,
                              0.98379084, 1.54577304, 1.51861533, 1.23976157,
                              1.43199934, 1.17238163, 0.58636256, 1.12205645,
                              0.09508500],
-                 'FHOM_THETAS': [4.71109440, 6.05698300, 3.84238418, 6.23370380,
-                                 7.89603172, 7.87712768, 8.45272550,
-                                 10.00101086, 6.58376596, 3.53488296,
-                                 5.27183305, 6.36805821, 7.56839088, 8.24757240,
-                                 14.90634368, 18.85016717, 260.59793175],
+                 'FHOM_THETAS': [4.71109440, 6.05698300, 3.84238418,
+                                 6.23370380, 7.89603172, 7.87712768,
+                                 8.45272550, 10.00101086, 6.58376596,
+                                 3.53488296, 5.27183305, 6.36805821,
+                                 7.56839088, 8.24757240, 14.90634368,
+                                 18.85016717, 260.59793175],
                  'FHOM_OFFSETS': [8.16878678, 10.55275451, 8.07166998,
                                   8.07086829, 8.94105317, 7.75703706,
                                   7.89853517, 7.14019430, 8.17322770,
@@ -147,11 +150,12 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
                              1.38457279, 2.14489528, 1.35910370, 1.44452982,
                              1.89318549, 0.92291990, 0.97845756, 1.42279817,
                              0.09633877],
-                 'PROD_THETAS': [5.84241875, 2.72996718, 3.68246691, 6.69128325,
-                                 10.43308700, 11.90997028, 13.04316866,
-                                 6.93301203, 8.31241387, 4.62399907, 7.32859575,
-                                 11.79756235, 12.32143937, 26.04107818,
-                                 17.76146131, 18.81871472, 195.40205368],
+                 'PROD_THETAS': [5.84241875, 2.72996718, 3.68246691,
+                                 6.69128325, 10.43308700, 11.90997028,
+                                 13.04316866, 6.93301203, 8.31241387,
+                                 4.62399907, 7.32859575, 11.79756235,
+                                 12.32143937, 26.04107818, 17.76146131,
+                                 18.81871472, 195.40205368],
                  'PROD_OFFSETS': [16.32704840, 19.47650057, 16.18710622,
                                   16.34553372, 19.25022797, 18.30852676,
                                   18.15222002, 18.98117587, 19.84269749,
@@ -168,11 +172,12 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
                                 0.00857187, 0.00499798, 0.00489236, 0.00462047,
                                 0.00532479, 0.00263985, 0.00623849, 0.01249162,
                                 0.00115305],
-                 'DUR_OFFSETS': [0.10320000, 0.09316255, 0.06500000, 0.05480000,
-                                 0.04420000, 0.03220000, 0.02820000, 0.02580000,
-                                 0.02291436, 0.01940000, 0.01760000, 0.01500000,
-                                 0.01180000, 0.01000000, 0.01180000, 0.01500000,
-                                 0.00844698]}
+                 'DUR_OFFSETS': [0.10320000, 0.09316255, 0.06500000,
+                                 0.05480000, 0.04420000, 0.03220000,
+                                 0.02820000, 0.02580000, 0.02291436,
+                                 0.01940000, 0.01760000, 0.01500000,
+                                 0.01180000, 0.01000000, 0.01180000,
+                                 0.01500000, 0.00844698]}
 
     nyquist = (fs / 2) - 1
     n_bands = len([x for x in constants['BAND_STOPS'] if x <= nyquist])
@@ -241,7 +246,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         # Insert congloms
         for event_start, event_stop in zip(det_starts, det_stops):
             det_arr = sub_arr[(sub_arr[:, 0] >= event_start)
-                               & (sub_arr[:, 1] <= event_stop)]
+                              & (sub_arr[:, 1] <= event_stop)]
             low_fc = det_arr[:, 2].min()
             high_fc = det_arr[:, 3].max()
             amp = det_arr[:, 4].max()
@@ -281,10 +286,12 @@ def _detect_band(args):
     wind_secs = cycs_per_detect / constants['BAND_CENTERS'][band_idx]
 
     b, a = butter(3, [(constants['BAND_CENTERS'][band_idx] / 4) / (fs / 2),
-                      constants['BAND_STOPS'][band_idx] / (fs / 2)], 'bandpass')
+                      constants['BAND_STOPS'][band_idx] / (fs / 2)],
+                  'bandpass')
     bp_x = filtfilt(b, a, x)
     b, a = butter(3, [constants['BAND_STARTS'][band_idx] / (fs / 2),
-                      constants['BAND_STOPS'][band_idx] / (fs / 2)], 'bandpass')
+                      constants['BAND_STOPS'][band_idx] / (fs / 2)],
+                  'bandpass')
     np_x = filtfilt(b, a, x)
 
     h = hilbert(np_x)
@@ -395,7 +402,7 @@ def _detect_band(args):
 
             conglom_band[event_start:event_stop] = 1
 
-            #Put in output-df
+            # Put in output-df
             output.append((event_start, event_stop,
                            constants['BAND_STARTS'][band_idx],
                            constants['BAND_STOPS'][band_idx],
@@ -416,6 +423,7 @@ def _inverse_gamma_cdf(p, k, theta, offset):
     x = (x * theta) + offset
 
     return x
+
 
 def _sliding_snr(np_x, bp_x, fs, wind_secs):
     """
@@ -539,13 +547,13 @@ class CSDetector(Method):
         mp: int
             Number of cores to use (def = 1)
         sample_offset: int
-            Offset which is added to the final detection. This is used when the 
+            Offset which is added to the final detection. This is used when the
             function is run in separate windows. Default = 0
 
         References
         ----------
-        [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS 
-        Algorithm: A Novel Method for High Frequency Oscillation Detection 
+        [1] J. Cimbalnik, A. Hewitt, G. A. Worrell, and M. Stead, “The CS
+        Algorithm: A Novel Method for High Frequency Oscillation Detection
         in EEG,” J. Neurosci. Methods, vol. 293, pp. 6–16, 2017.
         """
 

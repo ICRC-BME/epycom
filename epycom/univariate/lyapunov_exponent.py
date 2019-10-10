@@ -4,7 +4,6 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
-import pickle
 
 # Third pary imports
 import numpy as np
@@ -190,6 +189,7 @@ def compute_lyapunov_exponent(data, fs=5000, dimension=5, sample_lag=None,
     le = poly[0] / (sample_lag / fs)
 
     return le
+
 
 class LyapunovExponent(Method):
 

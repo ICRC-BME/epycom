@@ -11,7 +11,6 @@ import numpy as np
 
 # Local imports
 from epycom.utils.data_operations import create_output_df, add_metadata
-from epycom.univariate.univariate_methods import compute_hjorth_complexity
 from epycom.utils.signal_transforms import (compute_hilbert_envelope,
                                             compute_hilbert_power,
                                             compute_teager_energy,

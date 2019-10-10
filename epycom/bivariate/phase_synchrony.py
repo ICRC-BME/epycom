@@ -16,7 +16,7 @@ from ..utils.method import Method
 
 def compute_phase_sync(sig):
     """
-    Calculation of phase synchronization using Hilbert transformation 
+    Calculation of phase synchronization using Hilbert transformation
     sensitive to phases, irrespective of the amplitude
     and phase shift, pre-filtering of the signals is necessary
 
@@ -57,7 +57,7 @@ class PhaseSynchrony(Method):
 
     def __init__(self, **kwargs):
         """
-        Calculation of phase synchronization using Hilbert transformation 
+        Calculation of phase synchronization using Hilbert transformation
         sensitive to phases, irrespective of the amplitude
         and phase shift, pre-filtering of the signals is necessary
 

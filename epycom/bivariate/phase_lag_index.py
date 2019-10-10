@@ -18,10 +18,10 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
     """
     Phase-lag index.
 
-    - filter signal before pli calculation (if one is filtered and the other 
-      is not (or in different f-band), it can return fake high pli, which is 
+    - filter signal before pli calculation (if one is filtered and the other
+      is not (or in different f-band), it can return fake high pli, which is
       caused by substraction (difference) of inst. phases at different scales)
-    - use appropriate win and lag (max lag ~= fs/2*fmax, else it runs over one 
+    - use appropriate win and lag (max lag ~= fs/2*fmax, else it runs over one
       period and finds pli=1)
 
     Parameters
@@ -46,8 +46,8 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
 
     References
     ----------
-    [1] C. J. Stam and J. C. Reijneveld, “Graph theoretical analysis of 
-    complex networks in the brain,” Nonlinear Biomed. Phys., vol. 1, no. 1, 
+    [1] C. J. Stam and J. C. Reijneveld, “Graph theoretical analysis of
+    complex networks in the brain,” Nonlinear Biomed. Phys., vol. 1, no. 1,
     p. 3, 2007.
     """
 
@@ -84,7 +84,7 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
 
 
 class PhaseLagIndex(Method):
-    
+
     def __init__(self, **kwargs):
         """
         Phase-lag index.
@@ -102,11 +102,11 @@ class PhaseLagIndex(Method):
             negative and positive shift of time series in samples
         lag_step: int
             step of shift in samples
-        
+
         References
         ----------
-        [1] C. J. Stam and J. C. Reijneveld, “Graph theoretical analysis of 
-        complex networks in the brain,” Nonlinear Biomed. Phys., vol. 1, no. 1, 
+        [1] C. J. Stam and J. C. Reijneveld, “Graph theoretical analysis of
+        complex networks in the brain,” Nonlinear Biomed. Phys., vol. 1, no. 1,
         p. 3, 2007.
         """
 

@@ -37,8 +37,8 @@ def compute_phase_const(sig, lag=500, lag_step=50):
     Returns
     -------
     phase_const: float
-        ranges between 0 and 1 
-        (1 for the phase lock which does not shift during the whole time period)
+        ranges between 0 and 1
+        (1 for the phase lock which does not shift during the time period)
 
     Example
     -------

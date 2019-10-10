@@ -38,7 +38,7 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
     band_spacing: str
         Spacing of hilbert freqeuncy bands - options: 'linear' or 'log'
         (default='linear'). Linear provides better frequency resolution but
-        is slower. 
+        is slower.
     num_bands: int
         Number of bands if band_spacing = log (default=300)
     cyc_th: float
@@ -48,7 +48,7 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
     mp: int
         Number of cores to use (default=1)
     sample_offset: int
-        Offset which is added to the final detection. This is used when the 
+        Offset which is added to the final detection. This is used when the
         function is run in separate windows. Default = 0
 
     Returns
@@ -60,9 +60,9 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
 
     References
     ----------
-    [1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann, 
-    M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and 
-    G. A. Worrell, “High frequency oscillations are associated with cognitive 
+    [1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann,
+    M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and
+    G. A. Worrell, “High frequency oscillations are associated with cognitive
     processing in human recognition memory.,” Brain, pp. 1–14, Jun. 2014.
     """
 
@@ -106,7 +106,7 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
 
             tdetects_concat.append(_band_z_score_detect(args))
 
-     # Process detects
+    # Process detects
     detects = np.array([det for band in tdetects_concat for det in band])
 
     outlines = []
@@ -240,7 +240,6 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
     else:
         # Get overllaping detects
         for next_det_idx in next_band_idcs[0]:
-            #detection = detects[0]
             if check_detection_overlap([detects[det_idx, 1], detects[det_idx,
                                                                      2]],
                                        [detects[next_det_idx, 1],
@@ -273,7 +272,7 @@ class HilbertDetector(Method):
         band_spacing: str
             Spacing of hilbert freqeuncy bands - options: 'linear' or 'log'
             (default='linear'). Linear provides better frequency resolution but
-            is slower. 
+            is slower.
         num_bands: int
             Number of bands if band_spacing = log (default=300)
         cyc_th: float
@@ -283,15 +282,15 @@ class HilbertDetector(Method):
         mp: int
             Number of cores to use (default=1)
         sample_offset: int
-            Offset which is added to the final detection. This is used when the 
+            Offset which is added to the final detection. This is used when the
             function is run in separate windows. Default = 0
 
         References
         ----------
-        [1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann, 
-        M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and 
-        G. A. Worrell, “High frequency oscillations are associated with 
-        cognitive processing in human recognition memory.,” Brain, pp. 1–14, 
+        [1] M. T. Kucewicz, J. Cimbalnik, J. Y. Matsumoto, B. H. Brinkmann,
+        M. Bower, V. Vasoli, V. Sulc, F. Meyer, W. R. Marsh, S. M. Stead, and
+        G. A. Worrell, “High frequency oscillations are associated with
+        cognitive processing in human recognition memory.,” Brain, pp. 1–14,
         Jun. 2014.
         """
 

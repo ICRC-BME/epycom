@@ -7,7 +7,6 @@
 from math import isclose
 
 # Third pary imports
-import numpy as np
 from scipy.signal import butter, filtfilt
 
 # Local imports
@@ -42,7 +41,7 @@ def test_detect_hfo_ll(create_testing_eeg_data, benchmark):
     b, a = butter(3, [80 / (fs / 2), 600 / (fs / 2)], 'bandpass')
     filt_data = filtfilt(b, a, create_testing_eeg_data)
     window_size = int((1 / 80) * fs)
-    
+
     compute_instance = LineLengthDetector()
     compute_instance.params = {'window_size': window_size}
     dets = benchmark(compute_instance.run_windowed,
@@ -61,7 +60,7 @@ def test_detect_hfo_rms(create_testing_eeg_data, benchmark):
     b, a = butter(3, [80 / (fs / 2), 600 / (fs / 2)], 'bandpass')
     filt_data = filtfilt(b, a, create_testing_eeg_data)
     window_size = int((1 / 80) * fs)
-    
+
     compute_instance = RootMeanSquareDetector()
     compute_instance.params = {'window_size': window_size}
     dets = benchmark(compute_instance.run_windowed,
@@ -78,9 +77,9 @@ def test_detect_hfo_rms(create_testing_eeg_data, benchmark):
 def test_detect_hfo_hilbert(create_testing_eeg_data, benchmark):
     compute_instance = HilbertDetector()
     compute_instance.params = {'fs': 5000,
-                              'low_fc': 80,
-                              'high_fc': 600,
-                              'threshold': 7}
+                               'low_fc': 80,
+                               'high_fc': 600,
+                               'threshold': 7}
     dets = benchmark(compute_instance.run_windowed,
                      create_testing_eeg_data, 50000)
     print(dets)
@@ -105,7 +104,7 @@ def test_detect_hfo_cs_beta(create_testing_eeg_data, benchmark):
 
     # Only the second HFO is caught by CS (due to signal artificiality)
     expected_vals = [(34992, 35090),  # Band detection
-                     (34992, 35090)]  # Conglomerate detection 
+                     (34992, 35090)]  # Conglomerate detection
 
     for exp_val, det in zip(expected_vals, dets):
         assert det[0] == exp_val[0]

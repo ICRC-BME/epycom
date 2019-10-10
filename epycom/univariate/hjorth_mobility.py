@@ -4,7 +4,6 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
-import pickle
 
 # Third pary imports
 import numpy as np
@@ -46,6 +45,7 @@ def compute_hjorth_mobility(signal, fs=5000):
 
     hjorth_mobility = np.sqrt(variancedx / variancex)
     return hjorth_mobility
+
 
 class HjorthMobility(Method):
 

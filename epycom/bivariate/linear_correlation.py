@@ -34,7 +34,7 @@ def compute_lincorr(sig, lag=0, lag_step=0):
     lincorr: list
         maximum linear correlation in shift
     tau: float
-        shift of maximum correlation in samples, 
+        shift of maximum correlation in samples,
         value in range <-lag,+lag> (float)
         tau<0: sig[1] -> sig[0]
         tau>0: sig[0] -> sig[1]
@@ -46,7 +46,7 @@ def compute_lincorr(sig, lag=0, lag_step=0):
 
     if type(sig) != np.ndarray:
         raise TypeError(f"Signals have to be in numpy arrays!")
-    
+
     if lag == 0:
         lag_step = 1
     nstep_lag = int(lag * 2 / lag_step)
@@ -74,9 +74,9 @@ class LinearCorrelation(Method):
     def __init__(self, **kwargs):
         """
         Linear correlation (Pearson's coefficient) between two time series
-        
+
         When win and win_step is not 0, calculates evolution of correlation
-        
+
         When win>len(sig) or win<=0, calculates only one corr coef
 
         When lag and lag_step is not 0, shifts the sig[1] from negative

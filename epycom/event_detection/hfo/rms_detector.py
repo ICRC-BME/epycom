@@ -8,7 +8,6 @@
 
 # Third pary imports
 import numpy as np
-from scipy.signal import butter, filtfilt
 
 # Local imports
 from ...utils.signal_transforms import compute_rms
@@ -19,7 +18,8 @@ from ...utils.method import Method
 def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
                    window_overlap=0.25, sample_offset=0):
     """
-    Root mean square detection algorithm {Staba et al. 2002, Blanco et al 2010}.
+    Root mean square detection algorithm {Staba et al. 2002,
+    Blanco et al 2010}.
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
     window_overlap: float
         Fraction of the window overlap (0 to 1)
     sample_offset: int
-        Offset which is added to the final detection. This is used when the 
+        Offset which is added to the final detection. This is used when the
         function is run in separate windows. Default = 0
 
     Returns
@@ -45,9 +45,9 @@ def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
 
     References
     ----------
-    [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel, 
-    “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz) 
-    Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,” 
+    [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel,
+    “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz)
+    Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,”
     J. Neurophysiol., vol. 88, pp. 1743–1752, 2002.
     """
 
@@ -123,14 +123,14 @@ class RootMeanSquareDetector(Method):
         window_overlap: float
             Fraction of the window overlap (0 to 1)
         sample_offset: int
-            Offset which is added to the final detection. This is used when the 
+            Offset which is added to the final detection. This is used when the
             function is run in separate windows. Default = 0
 
         References
         ----------
-        [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel, 
-        “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz) 
-        Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,” 
+        [1] R. J. Staba, C. L. Wilson, A. Bragin, I. Fried, and J. Engel,
+        “Quantitative Analysis of High-Frequency Oscillations (80 − 500 Hz)
+        Recorded in Human Epileptic Hippocampus and Entorhinal Cortex,”
         J. Neurophysiol., vol. 88, pp. 1743–1752, 2002.
         """
 
@@ -142,4 +142,3 @@ class RootMeanSquareDetector(Method):
                       ('event_stop', 'int32')]
 
         self._window_indices = False
-        

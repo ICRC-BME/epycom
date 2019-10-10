@@ -34,7 +34,7 @@ def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
     window_overlap: float
         Fraction of the window overlap (0 to 1)
     sample_offset: int
-        Offset which is added to the final detection. This is used when the 
+        Offset which is added to the final detection. This is used when the
         function is run in separate windows. Default = 0
 
     Returns
@@ -45,9 +45,9 @@ def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
 
     References
     ----------
-    [1] A. B. Gardner, G. A. Worrell, E. Marsh, D. Dlugos, and B. Litt, “Human 
-    and automated detection of high-frequency oscillations in clinical 
-    intracranial EEG recordings,” Clin. Neurophysiol., vol. 118, no. 5, pp. 
+    [1] A. B. Gardner, G. A. Worrell, E. Marsh, D. Dlugos, and B. Litt, “Human
+    and automated detection of high-frequency oscillations in clinical
+    intracranial EEG recordings,” Clin. Neurophysiol., vol. 118, no. 5, pp.
     1134–1143, May 2007.
     """
 
@@ -123,14 +123,14 @@ class LineLengthDetector(Method):
         window_overlap: float
             Fraction of the window overlap (0 to 1)
         sample_offset: int
-            Offset which is added to the final detection. This is used when the 
+            Offset which is added to the final detection. This is used when the
             function is run in separate windows. Default = 0
 
         References
         ----------
-        [1] A. B. Gardner, G. A. Worrell, E. Marsh, D. Dlugos, and B. Litt, 
-        “Human and automated detection of high-frequency oscillations in 
-        clinical intracranial EEG recordings,” Clin. Neurophysiol., vol. 118, 
+        [1] A. B. Gardner, G. A. Worrell, E. Marsh, D. Dlugos, and B. Litt,
+        “Human and automated detection of high-frequency oscillations in
+        clinical intracranial EEG recordings,” Clin. Neurophysiol., vol. 118,
         no. 5, pp. 1134–1143, May 2007.
         """
 

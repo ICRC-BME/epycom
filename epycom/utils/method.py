@@ -32,11 +32,11 @@ class Method:
         Current version of the algorithm
     dtype: np.dtype
         Numpy data type of the results returned by run_windowed method
-    
+
     Methods
     -------
     compute(data)
-    
+
     run_windowed(data, window_size=5000, overlap=None, n_cores=None)
     """
     def __init__(self, compute_function, **kwargs):
@@ -47,7 +47,7 @@ class Method:
         self._params = kwargs
         self._compute_function = compute_function
         self._check_params()
-        
+
         self._window_indices = True
 
         return
@@ -81,7 +81,7 @@ class Method:
             return np.nan
 
         return self._compute_function(data, **self._params)
-    
+
     def _check_params(self):
         func_sig = inspect.signature(self._compute_function)
         keys_to_pop = []
@@ -90,7 +90,7 @@ class Method:
                 if key not in func_sig.parameters.keys():
                     warnings.warn(f"Unrecognized keyword argument {key}.\
                                     It will be ignored",
-                                    RuntimeWarning)
+                                  RuntimeWarning)
                     keys_to_pop.append(key)
         for key in keys_to_pop:
             self._params.pop(key)
@@ -108,7 +108,7 @@ class Method:
         overlap: float
             Fraction of the window overlap <0, 1>. Default=0
         n_cores: None | int
-            Number of cores to use in multiprocessing. When None, 
+            Number of cores to use in multiprocessing. When None,
             multiprocessing is not used. Default=None
 
         Returns
@@ -116,7 +116,7 @@ class Method:
         results array: numpy.ndarray
             Array with the results of processing with dtype = self.dtype
         """
-    
+
         # Take care of parameters
         data = np.squeeze(data)
 
@@ -131,18 +131,18 @@ class Method:
         window_idxs = np.empty(n_windows, [('event_start', 'int32'),
                                            ('event_stop', 'int32')])
         window_idxs['event_start'] = (np.arange(n_windows) * window_size
-                                 - np.arange(n_windows) * overlap_samp)
+                                      - np.arange(n_windows) * overlap_samp)
         window_idxs['event_stop'] = window_idxs['event_start'] + window_size
         if n_cores is None or mp.cpu_count() < 2:
             results = []
-            
+
             for ci, idx in enumerate(window_idxs):
                 if not self._window_indices:
                     self._params['sample_offset'] = idx[0]
                 if data.ndim > 1:
                     results.append(self.compute(data[:, idx[0]: idx[1]]))
                 else:
-                    results.append(self.compute(data[idx[0]: idx[1]]))                  
+                    results.append(self.compute(data[idx[0]: idx[1]]))
         else:
             if n_cores > mp.cpu_count():
                 n_cores = mp.cpu_count()
@@ -158,10 +158,10 @@ class Method:
                     chunks.append((data[:, idx[0]: idx[1]]))
                 else:
                     chunks.append((data[idx[0]: idx[1]]))
-            
+
             # TODO: pass parameters into comput function!!!!
             results = pool.map(self.compute, chunks)
-                            
+
             pool.close()
 
         # Output dtype

@@ -19,9 +19,9 @@ def compute_coherence(sig, fs=5000, fband=[1.0, 4.0], lag=0, lag_step=0,
     """
     Magnitude squared coherence between two time series (raw,
     not filtered signals)
-    
+
     When win and win_step is not 0, calculates evolution of coherence
-    
+
     When win>len(sig) or win<=0, calculates only one coherence value
 
     When lag and lag_step is not 0, shifts the sig[1] from negative
@@ -47,7 +47,7 @@ def compute_coherence(sig, fs=5000, fband=[1.0, 4.0], lag=0, lag_step=0,
     max_coh: list
         maximum coherence in shift
     tau: float
-        shift of maximum coherence in samples, 
+        shift of maximum coherence in samples,
         value in range <-lag,+lag> (float)
         tau<0: sig[1] -> sig[0]
         tau>0: sig[0] -> sig[1]
@@ -60,11 +60,11 @@ def compute_coherence(sig, fs=5000, fband=[1.0, 4.0], lag=0, lag_step=0,
 
     if type(sig) != np.ndarray:
         raise TypeError(f"Signals have to be in numpy arrays!")
-    
+
     if lag == 0:
         lag_step = 1
     nstep_lag = int(lag * 2 / lag_step)
-    
+
     fft_win = int(fft_win*fs)
     hz_bins = (fft_win/2)/(fs/2)
     fc1 = int(fband[0]*hz_bins)
@@ -94,9 +94,9 @@ class Coherence(Method):
         """
         Magnitude squared coherence between two time series (raw,
         not filtered signals)
-        
+
         When win and win_step is not 0, calculates evolution of coherence
-        
+
         When win>len(sig) or win<=0, calculates only one coherence value
 
         When lag and lag_step is not 0, shifts the sig[1] from negative

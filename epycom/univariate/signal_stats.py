@@ -4,7 +4,6 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
-import pickle
 
 # Third pary imports
 import numpy as np
@@ -57,6 +56,7 @@ def compute_signal_stats(sig):
 
     return sig_stats
 
+
 class SignalStats(Method):
 
     def __init__(self, **kwargs):
@@ -81,5 +81,3 @@ class SignalStats(Method):
                       ('power_min', 'float32'),
                       ('power_perc25', 'float32'),
                       ('power_perc75', 'float32')]
-
-        

@@ -7,7 +7,6 @@
 # Std imports
 
 # Third pary imports
-from scipy.stats import ttest_1samp
 
 # Local imports
 from epycom.validation.util import check_detection_overlap
@@ -40,8 +39,8 @@ def create_precision_recall_curve(gs_df, dd_df, bn, threshold,
         Nnumber representing one second of signal - this can
         significantly imporove the speed of this operation
     sec_margin: int
-        Margin for creating subsets of compared data - should be set
-        according to the legnth of compared events (1s for HFO should be enough)
+        Margin for creating subsets of compared data - should be set according
+        to the legnth of compared events (1s for HFO should be enough)
     eval_type: str
         Whether to use bigger than threshold or equal to threshold
         for thresholding, options are 'equal' or 'bigger'
@@ -112,8 +111,8 @@ def calculate_f_score(gs_df, dd_df, bn, sec_unit=None, sec_margin=1):
         Nnumber representing one second of signal - this can
         significantly imporove the speed of this operation
     sec_margin: int
-        Margin for creating subsets of compared data - should be set
-        according to the legnth of compared events (1s for HFO should be enough)
+        Margin for creating subsets of compared data - should be set according
+        to the legnth of compared events (1s for HFO should be enough)
 
     Returns
     -------
@@ -161,8 +160,8 @@ def calculate_f_score(gs_df, dd_df, bn, sec_unit=None, sec_margin=1):
             gs_df.loc[gs_row[0], 'match'] = True
 
     # We ge number of unmatched detections
-    FN = len(gs_df[gs_df['match'] == False])
-    FP = len(dd_df[dd_df['match'] == False])
+    FN = len(gs_df[gs_df['match'] is False])
+    FP = len(dd_df[dd_df['match'] is False])
 
     # Calculate precision and recall
     precision = TP / (TP + FP)

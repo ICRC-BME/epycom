@@ -4,7 +4,6 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 # Std imports
-import pickle
 
 # Third pary imports
 import numpy as np
@@ -60,7 +59,7 @@ class HjorthComplexity(Method):
         ----
         result is NOT frequency dependent
         """
-        
+
         super().__init__(compute_hjorth_complexity, **kwargs)
 
         self.algorithm = 'HJORTH_COMPLEXITY'
