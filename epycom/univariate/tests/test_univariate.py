@@ -11,8 +11,6 @@ from math import isclose
 
 # Local imports
 from epycom.univariate import (SignalStats,
-                               compute_fac,
-                               compute_pac,
                                PowerSpectralEntropy,
                                LyapunovExponent,
                                HjorthMobility,
@@ -34,16 +32,6 @@ def test_signal_stats(create_testing_data, benchmark):
 
     for exp_stat, stat in zip(expected_vals, list(stats[0])[2:]):
         assert isclose(stat, exp_stat, abs_tol=10e-6)
-
-
-def test_fac(create_testing_data, benchmark):
-    res = round(benchmark(compute_fac, create_testing_data, 5000), 5)
-    assert res == -0.00019
-
-
-def test_pac(create_testing_data, benchmark):
-    res = round(benchmark(compute_pac, create_testing_data, 5000), 5)
-    assert res == 0.01189
 
 
 def test_pse(create_testing_data, benchmark):
