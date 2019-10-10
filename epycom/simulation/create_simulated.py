@@ -4,7 +4,7 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 """
-Some parts of code are recoded from package Anderson Brito da Silva's pyhfo 
+Some parts of code are recoded from package Anderson Brito da Silva's pyhfo
 package (https://github.com/britodasilva/pyhfo)
 """
 
@@ -12,7 +12,6 @@ package (https://github.com/britodasilva/pyhfo)
 
 # Third pary imports
 import numpy as np
-import scipy.signal as sig
 from scipy.stats import norm
 
 # Local imports
@@ -241,8 +240,8 @@ def simulate_hfo(fs=5000, freq=None, numcycles=None):
     fs: float
         Sampling rate of the signal (default=5000)
     freq: float
-        Frequency of the artificial HFO (default=None - random frequency betwwen
-         80 nad 600 Hz)
+        Frequency of the artificial HFO (default=None - random frequency
+        between 80 nad 600 Hz)
     numcycles: int
         Number of HFO cycles (default=None - cycles between 9 - 14)
 

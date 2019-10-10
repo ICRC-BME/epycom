@@ -11,8 +11,6 @@ import numpy as np
 
 # Local imports
 from epycom.utils.data_operations import create_output_df, add_metadata
-from epycom.univariate.univariate_methods import compute_hjorth_complexity
-from epycom.utils.window_features import window
 from epycom.utils.signal_transforms import (compute_hilbert_envelope,
                                             compute_hilbert_power,
                                             compute_teager_energy,
@@ -70,7 +68,7 @@ def test_compute_stenergy(create_testing_data):
 
 def test_compute_line_lenght(create_testing_data):
     assert (round(np.sum(compute_line_lenght(create_testing_data)), 5)
-            == round(58085.86029191726, 5))
+            == round(58084.721256107114, 5))
 
 
 def test_compute_stockwell_transform(create_testing_data):
@@ -97,16 +95,3 @@ def test_th_percentile(create_testing_data):
 def test_th_quian(create_testing_data):
     assert (round(th_quian(create_testing_data, 3), 5)
             == round(6.777704219110832, 5))
-
-
-# -------Window function ------
-def test_window(create_testing_data):
-
-    method_args = [{'args': [5000], 'kwargs': {}}]
-    result_dataframe = window(create_testing_data,
-                              5000, compute_hjorth_complexity,
-                              method_args=method_args,
-                              wsize=5000, overlap=0.2)
-    start_check = int(result_dataframe.event_start[4])
-    end_check = int(result_dataframe.event_stop[4])
-    assert (start_check == 16000 and end_check == 21000)

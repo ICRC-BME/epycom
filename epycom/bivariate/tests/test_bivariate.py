@@ -5,74 +5,64 @@
 
 
 # Std imports
+from math import isclose
 
 # Third pary imports
 
 # Local imports
-from epycom.bivariate.bivariate_methods import (compute_lincorr,
-                                                compute_spect_multp,
-                                                compute_relative_entropy,
-                                                compute_phase_sync,
-                                                compute_phase_const,
-                                                compute_pli,
-                                                compute_nonlinear_corr)
+from epycom.bivariate import (LinearCorrelation,
+                              SpectraMultiplication,
+                              RelativeEntropy,
+                              PhaseSynchrony,
+                              PhaseConsistency,
+                              PhaseLagIndex)
 
 
-def test_lincorr(create_testing_data):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
-    assert (round(compute_lincorr(ch_1, ch_2)[0][0], 5)
-            == 0)
+def test_lincorr(create_testing_data, benchmark):
+    compute_instance = LinearCorrelation()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+
+    assert isclose(res[0][2], 0, abs_tol=10-6)
 
 
-def test_spect_multp(create_testing_data):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
+def test_spect_multp(create_testing_data, benchmark):
+    compute_instance = SpectraMultiplication()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
 
-    sm_mean, sm_std = compute_spect_multp(ch_1, ch_2)
-
-    assert ((round(sm_mean, 5), round(sm_std, 5))
-            == (70522.64105, 35728.93925))
-
-
-def test_relative_entropy(create_testing_data):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
-    assert (round(compute_relative_entropy(ch_1, ch_2), 5)
-            == 0.17262)
+    assert isclose(res[0][2], 70522.64105, abs_tol=10-6)
+    assert isclose(res[0][3], 35728.93925, abs_tol=10-6)
 
 
-def test_phase_sync(create_testing_data):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
-    assert (round(compute_phase_sync(ch_1, ch_2), 5)
-            == 1.0)
+def test_relative_entropy(create_testing_data, benchmark):
+    compute_instance = RelativeEntropy()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+
+    assert isclose(res[0][2], 0.17262, abs_tol=10-6)
 
 
-def test_phase_const(create_testing_data):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
+def test_phase_sync(create_testing_data, benchmark):
+    compute_instance = PhaseSynchrony()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 1.0, abs_tol=10-6)
+
+
+def test_phase_const(create_testing_data, benchmark):
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
-    assert (round(compute_phase_const(ch_1, ch_2, lag, lag_step), 5)
-            == 0.41204)
+    compute_instance = PhaseConsistency(lag=lag, lag_step=lag_step)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 0.41203687, abs_tol=10-6)
 
 
-def test_pli(create_testing_data):
-    ch_1 = create_testing_data[0]
-    ch_2 = create_testing_data[1]
+def test_pli(create_testing_data, benchmark):
     lag = int((5000 / 100) / 2)
     lag_step = int(lag / 10)
-    assert (round(compute_pli(ch_1, ch_2, lag, lag_step)[0][0], 5)
-            == 1.0)
-
-
-def test_nonlinear_correlation(create_testing_data):
-    noncorr, tau2 = compute_nonlinear_corr(create_testing_data[0], create_testing_data[1], 200, 20, 2500, 250,  100)
-    assert (round(noncorr[0], 5) == 0.23222)
-    noncorr, tau2 = compute_nonlinear_corr(create_testing_data[0], create_testing_data[1], )
-    assert (round(noncorr[0], 5) == 0.00242)
-    noncorr, tau2 = compute_nonlinear_corr(create_testing_data[0], abs(create_testing_data[0]), )
-    assert (round(noncorr[0], 5) == 0.9952)
-    noncorr, tau2 = compute_nonlinear_corr(abs(create_testing_data[0]), create_testing_data[0])
-    assert (round(noncorr[0], 5) == 0.0)
+    compute_instance = PhaseLagIndex(lag=lag, lag_step=lag_step)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    assert isclose(res[0][2], 1.0, abs_tol=10-6)

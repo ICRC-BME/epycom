@@ -132,18 +132,18 @@ def compute_line_lenght(signal, window_size=6):
     line_length: numpy array
         Line length transformed signal
     """
-    window_size = int(window_size)
-    aux = np.abs(np.diff(signal))
+    aux = np.abs(np.subtract(signal[1:], signal[:-1]))
     window = np.ones(window_size) / float(window_size)
-    data = np.convolve(aux, window, 'same')
-    data = np.append(data, data[-1])
-    return data
+    data = np.convolve(aux, window)
+    start = int(np.floor(window_size / 2))
+    stop = int(np.ceil(window_size / 2))
+    return data[start:-stop]
 
 
 def compute_stockwell_transform(signal, fs, min_freq, max_freq, f_fs=1,
                                 factor=1):
     """
-    Calculates Stockwell transform - 
+    Calculates Stockwell transform -
     Localization of the Complex Spectrum: The S Transform
     IEEE Transactions on Signal Processing, vol. 44., number 4,
     April 1996, pages 998-1001.
@@ -202,9 +202,10 @@ def compute_stockwell_transform(signal, fs, min_freq, max_freq, f_fs=1,
                                _g_window(n, min_freq, factor))
 
     for i in np.linspace(f_fs, (max_freq - min_freq), (max_freq - min_freq)):
-        st[int((i - 1) / f_fs + 1), :] = np.fft.ifft(vector_fft[int(min_freq + i):
-                                                                int(min_freq + i + n)]
-                                                     * _g_window(n, min_freq + i, factor))
+        st[int((i - 1) / f_fs + 1), :] = np.fft.ifft(vector_fft[
+                int(min_freq + i):
+                int(min_freq + i + n)]
+            * _g_window(n, min_freq + i, factor))
 
     return st, t, f
 
@@ -215,7 +216,7 @@ def compute_stockwell_transform(signal, fs, min_freq, max_freq, f_fs=1,
 
 def _g_window(length, freq, factor):
     """
-    Function to compute the Gaussion window for 
+    Function to compute the Gaussion window for
     function compute_stockwell_transform.
 
     Parameters
