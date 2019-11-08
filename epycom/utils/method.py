@@ -39,16 +39,14 @@ class Method:
 
     run_windowed(data, window_size=5000, overlap=None, n_cores=None)
     """
+
+    _window_indices = True
+
     def __init__(self, compute_function, **kwargs):
-        self.algorithm = ''
-        self.version = ''
-        self.dtype = []
 
         self._params = kwargs
         self._compute_function = compute_function
         self._check_params()
-
-        self._window_indices = True
 
         return
 
@@ -136,7 +134,7 @@ class Method:
         if n_cores is None or mp.cpu_count() < 2:
             results = []
 
-            for ci, idx in enumerate(window_idxs):
+            for idx in window_idxs:
                 if not self._window_indices:
                     self._params['sample_offset'] = idx[0]
                 if data.ndim > 1:

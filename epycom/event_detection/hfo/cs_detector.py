@@ -527,6 +527,20 @@ def _sliding_snr(np_x, bp_x, fs, wind_secs):
 
 class CSDetector(Method):
 
+    algorithm = 'CS_DETECTOR'
+    version = '1.0.0b1'
+    dtype = [('event_start', 'int32'),
+             ('event_stop', 'int32'),
+             ('low_fc', 'float32'),
+             ('high_fc', 'float32'),
+             ('amp', 'float32'),
+             ('fhom', 'float32'),
+             ('dur', 'float32'),
+             ('prod', 'float32'),
+             ('type', 'bool')]
+
+    _window_indices = False
+
     def __init__(self, **kwargs):
         """
         Beta version of CS detection algorithm. Which was used to develop
@@ -558,17 +572,3 @@ class CSDetector(Method):
         """
 
         super().__init__(detect_hfo_cs_beta, **kwargs)
-
-        self.algorithm = 'CS_DETECTOR'
-        self.version = '1.0.0b1'
-        self.dtype = [('event_start', 'int32'),
-                      ('event_stop', 'int32'),
-                      ('low_fc', 'float32'),
-                      ('high_fc', 'float32'),
-                      ('amp', 'float32'),
-                      ('fhom', 'float32'),
-                      ('dur', 'float32'),
-                      ('prod', 'float32'),
-                      ('type', 'bool')]
-
-        self._window_indices = False

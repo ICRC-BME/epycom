@@ -156,6 +156,17 @@ def detect_spikes_barkmeier(sig, fs=5000, scale=70, std_coeff=4,
 
 class BarkmeierDetector(Method):
 
+    algorithm = 'BARKMEIER_DETECTOR'
+    version = '1.0.0'
+    dtype = [('event_peak', 'int32'),
+             ('event_amp', 'float32'),
+             ('left_amp', 'float32'),
+             ('left_dur', 'float32'),
+             ('right_amp', 'float32'),
+             ('right_dur', 'float32')]
+
+    _window_indices = False
+
     def __init__(self, **kwargs):
         """
         Python version of Barkmeier's EEG spike detector.
@@ -188,14 +199,3 @@ class BarkmeierDetector(Method):
         """
 
         super().__init__(detect_spikes_barkmeier, **kwargs)
-
-        self.algorithm = 'BARKMEIER_DETECTOR'
-        self.version = '1.0.0'
-        self.dtype = [('event_peak', 'int32'),
-                      ('event_amp', 'float32'),
-                      ('left_amp', 'float32'),
-                      ('left_dur', 'float32'),
-                      ('right_amp', 'float32'),
-                      ('right_dur', 'float32')]
-
-        self._window_indices = False

@@ -90,6 +90,12 @@ def compute_coherence(sig, fs=5000, fband=[1.0, 4.0], lag=0, lag_step=0,
 
 class Coherence(Method):
 
+    algorithm = 'COHERENCE'
+    version = '1.0.0'
+    dtype = [('max_coh', 'float32'),
+             ('tau', 'float32')]
+
+
     def __init__(self, **kwargs):
         """
         Magnitude squared coherence between two time series (raw,
@@ -117,8 +123,3 @@ class Coherence(Method):
         """
 
         super().__init__(compute_coherence, **kwargs)
-
-        self.algorithm = 'COHERENCE'
-        self.version = '1.0.0'
-        self.dtype = [('max_coh', 'float32'),
-                      ('tau', 'float32')]

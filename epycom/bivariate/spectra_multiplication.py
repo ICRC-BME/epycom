@@ -54,14 +54,14 @@ def compute_spect_multp(sig):
 
 class SpectraMultiplication(Method):
 
+    algorithm = 'SPECTRA_MULTIPLICATION'
+    version = '1.0.0'
+    dtype = [('sm_mean', 'float32'),
+             ('sm_std', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Multiply spectra of two time series and transforms it back to time
         domain where the mean and std is calculated
         """
         super().__init__(compute_spect_multp, **kwargs)
-
-        self.algorithm = 'SPECTRA_MULTIPLICATION'
-        self.version = '1.0.0'
-        self.dtype = [('sm_mean', 'float32'),
-                      ('sm_std', 'float32')]

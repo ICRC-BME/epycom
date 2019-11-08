@@ -108,6 +108,13 @@ def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
 
 class LineLengthDetector(Method):
 
+    algorithm = 'LINELENGTH_DETECTOR'
+    version = '1.0.0'
+    dtype = [('event_start', 'int32'),
+             ('event_stop', 'int32')]
+
+    _window_indices = False
+
     def __init__(self, **kwargs):
         """
         Line-length detection algorithm.
@@ -135,10 +142,3 @@ class LineLengthDetector(Method):
         """
 
         super().__init__(detect_hfo_ll, **kwargs)
-
-        self.algorithm = 'LINELENGTH_DETECTOR'
-        self.version = '1.0.0'
-        self.dtype = [('event_start', 'int32'),
-                      ('event_stop', 'int32')]
-
-        self._window_indices = False

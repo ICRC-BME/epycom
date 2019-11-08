@@ -55,6 +55,10 @@ def compute_phase_sync(sig):
 
 class PhaseSynchrony(Method):
 
+    algorithm = 'PHASE_SYNCHRONY'
+    version = '1.0.0'
+    dtype = [('phase_sync', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Calculation of phase synchronization using Hilbert transformation
@@ -66,7 +70,3 @@ class PhaseSynchrony(Method):
         Quiroga et al. 2008
         """
         super().__init__(compute_phase_sync, **kwargs)
-
-        self.algorithm = 'PHASE_SYNCHRONY'
-        self.version = '1.0.0'
-        self.dtype = [('phase_sync', 'float32')]

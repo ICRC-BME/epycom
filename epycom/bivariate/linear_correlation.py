@@ -71,6 +71,11 @@ def compute_lincorr(sig, lag=0, lag_step=0):
 
 class LinearCorrelation(Method):
 
+    algorithm = 'LINEAR_CORRELATION'
+    version = '1.0.0'
+    dtype = [('max_corr', 'float32'),
+             ('tau', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Linear correlation (Pearson's coefficient) between two time series
@@ -91,8 +96,3 @@ class LinearCorrelation(Method):
 
         """
         super().__init__(compute_lincorr, **kwargs)
-
-        self.algorithm = 'LINEAR_CORRELATION'
-        self.version = '1.0.0'
-        self.dtype = [('max_corr', 'float32'),
-                      ('tau', 'float32')]

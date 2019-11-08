@@ -254,6 +254,17 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
 
 class HilbertDetector(Method):
 
+    algorithm = 'HILBERT_DETECTOR'
+    version = '1.0.0'
+    dtype = [('event_start', 'int32'),
+             ('event_stop', 'int32'),
+             ('freq_min', 'float32'),
+             ('freq_max', 'float32'),
+             ('freq_at_max', 'float32'),
+             ('max_amplitude', 'float32')]
+
+    _window_indices = False
+
     def __init__(self, **kwargs):
         """
         Slightly modified algorithm which uses the 2D HFO hilbert detection
@@ -295,14 +306,3 @@ class HilbertDetector(Method):
         """
 
         super().__init__(detect_hfo_hilbert, **kwargs)
-
-        self.algorithm = 'HILBERT_DETECTOR'
-        self.version = '1.0.0'
-        self.dtype = [('event_start', 'int32'),
-                      ('event_stop', 'int32'),
-                      ('freq_min', 'float32'),
-                      ('freq_max', 'float32'),
-                      ('freq_at_max', 'float32'),
-                      ('max_amplitude', 'float32')]
-
-        self._window_indices = False

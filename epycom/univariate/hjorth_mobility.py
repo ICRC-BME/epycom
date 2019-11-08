@@ -49,6 +49,10 @@ def compute_hjorth_mobility(signal, fs=5000):
 
 class HjorthMobility(Method):
 
+    algorithm = 'HJORTH_MOBILITY'
+    version = '1.0.0'
+    dtype = [('hjorth_mobility', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Hjorth mobility of time series
@@ -60,7 +64,3 @@ class HjorthMobility(Method):
         """
 
         super().__init__(compute_hjorth_mobility, **kwargs)
-
-        self.algorithm = 'HJORTH_MOBILITY'
-        self.version = '1.0.0'
-        self.dtype = [('hjorth_mobility', 'float32')]
