@@ -10,7 +10,9 @@
 import numpy as np
 
 # Local imports
-from epycom.utils.data_operations import create_output_df, add_metadata
+from epycom.utils.data_operations import (calculate_absolute_samples,
+                                          create_output_df,
+                                          add_metadata)
 from epycom.utils.signal_transforms import (compute_hilbert_envelope,
                                             compute_hilbert_power,
                                             compute_teager_energy,
@@ -22,6 +24,12 @@ from epycom.utils.thresholds import th_std, th_tukey, th_percentile, th_quian
 
 
 # ----- Data operations -----
+def test_calculate_absolure_samples():
+    test_arr = np.array([0, 1], dtype=[('win_idx', 'int32')])
+    comp_arr = calculate_absolute_samples(test_arr, window_size=1000,
+                                          overlap=0.5)
+    assert np.all(np.array([0, 500]) == comp_arr)
+
 def test_create_output_df():
     res_df = create_output_df(fields={'field_1': np.int32,
                                       'field_2': np.float})

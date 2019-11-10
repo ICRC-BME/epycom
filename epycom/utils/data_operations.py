@@ -13,6 +13,30 @@ import pandas as pd
 # Local imports
 
 
+def calculate_absolute_samples(computation_result, window_size, overlap):
+    """
+    Convenience function to calculate absolute samples for the output of
+    run_windowed class method.
+
+    Parameters
+    ----------
+    computation_result: numpy.ndarray
+        Output of run_windowed method
+    window_size: int
+        Size of the window in samples
+    overlap: float
+        Value between 0 and 1 specifying the fraction of the window to overlap
+
+    Returns
+    -------
+    absolute_samples: numpy.ndarray
+        Structured array with window starts
+    """
+
+    return np.floor(computation_result['win_idx']
+                    * window_size * (1 - overlap)).astype(np.int32)
+
+
 def create_output_df(fields={}):
     """
     Function to create a custom pandas dataframe depending on the algorithm
