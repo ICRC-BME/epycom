@@ -16,7 +16,7 @@ from ...utils.method import Method
 
 
 def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
-                   window_overlap=0.25, sample_offset=0):
+                   window_overlap=0.25, win_idx=None):
     """
     Root mean square detection algorithm {Staba et al. 2002,
     Blanco et al 2010}.
@@ -33,9 +33,9 @@ def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
         Sliding window size in samples
     window_overlap: float
         Fraction of the window overlap (0 to 1)
-    sample_offset: int
-        Offset which is added to the final detection. This is used when the
-        function is run in separate windows. Default = 0
+    win_idx: int
+        Statistical window index. This is used when the
+        function is run in separate windows. Default = None
 
     Returns
     -------
@@ -96,8 +96,10 @@ def detect_hfo_rms(sig, fs=5000, threshold=3, window_size=100,
             # Optional feature calculations can go here
 
             # Write into output
-            output.append((event_start+sample_offset,
-                           event_stop+sample_offset))
+            if win_idx is not None:
+                output.append((event_start, event_stop, win_idx))
+            else:
+                output.append((event_start, event_stop))
 
             RMS_idx += 1
         else:
@@ -112,8 +114,6 @@ class RootMeanSquareDetector(Method):
     version = '1.0.0'
     dtype = [('event_start', 'int32'),
              ('event_stop', 'int32')]
-
-    _window_indices = False
 
     def __init__(self, **kwargs):
         """
