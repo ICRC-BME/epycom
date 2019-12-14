@@ -85,6 +85,11 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
 
 class PhaseLagIndex(Method):
 
+    algorithm = 'PHASE_LAG_INDEX'
+    version = '1.0.0'
+    dtype = [('pli', 'float32'),
+             ('tau', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Phase-lag index.
@@ -113,8 +118,3 @@ class PhaseLagIndex(Method):
         # TODO: print out warnings if conditions for warnings in doc string
 
         super().__init__(compute_pli, **kwargs)
-
-        self.algorithm = 'PHASE_LAG_INDEX'
-        self.version = '1.0.0'
-        self.dtype = [('pli', 'float32'),
-                      ('tau', 'float32')]

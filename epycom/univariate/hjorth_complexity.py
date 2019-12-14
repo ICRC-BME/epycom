@@ -46,6 +46,10 @@ def compute_hjorth_complexity(signal, fs=5000):
 
 class HjorthComplexity(Method):
 
+    algorithm = 'HJORTH_COMPLEXITY'
+    ersion = '1.0.0'
+    dtype = [('hjorth_complexity', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Hjorth complexity of time series
@@ -61,7 +65,3 @@ class HjorthComplexity(Method):
         """
 
         super().__init__(compute_hjorth_complexity, **kwargs)
-
-        self.algorithm = 'HJORTH_COMPLEXITY'
-        self.version = '1.0.0'
-        self.dtype = [('hjorth_complexity', 'float32')]

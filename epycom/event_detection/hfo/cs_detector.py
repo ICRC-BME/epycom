@@ -53,7 +53,7 @@ from ...utils.method import Method
 
 
 def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
-                       low_fc=None, high_fc=None, mp=1, sample_offset=0):
+                       low_fc=None, high_fc=None, mp=1, win_idx=None):
     """
     Beta version of CS detection algorithm. Which was used to develop
     CS detection algorithm.
@@ -74,9 +74,9 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         High cut-off frequency
     mp: int
         Number of cores to use (def = 1)
-    sample_offset: int
-        Offset which is added to the final detection. This is used when the
-        function is run in separate windows. Default = 0
+    win_idx: int
+        Statistical window index. This is used when the
+        function is run in separate windows. Default = None
 
     Returns
     -------
@@ -197,7 +197,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         for band_idx in range(n_bands):
             iter_args.append([sig, fs, norm_coefs, band_idx,
                               cycs_per_detect, threshold,
-                              edge_thresh, constants])
+                              edge_thresh, constants, win_idx])
 
         band_concat = work_pool.map(_detect_band, iter_args)
         work_pool.join()
@@ -214,7 +214,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         for band_idx in range(n_bands):
 
             args = [sig, fs, norm_coefs, band_idx, cycs_per_detect, threshold,
-                    edge_thresh, constants]
+                    edge_thresh, constants, win_idx]
 
             res = _detect_band(args)
             conglom_arr[band_idx, :] = res[1]
@@ -254,8 +254,13 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
             prod = det_arr[:, 6].max()
             dur = float(event_stop - event_start) / fs
 
-            output.append((event_start+sample_offset, event_stop+sample_offset,
-                           low_fc, high_fc, amp, fhom, dur, prod, True))
+            if win_idx is not None:
+                output.append((event_start, event_stop, low_fc, high_fc,
+                               amp, fhom, dur, prod, True, win_idx))
+            else:
+
+                output.append((event_start, event_stop, low_fc, high_fc,
+                               amp, fhom, dur, prod, True))
 
     if mp > 1:
         work_pool.close()
@@ -279,6 +284,7 @@ def _detect_band(args):
     threshold = args[5]
     edge_thresh = args[6]
     constants = args[7]
+    win_idx = args[8]
 
     conglom_band = np.zeros(len(x), 'bool')
     output = []
@@ -403,12 +409,17 @@ def _detect_band(args):
             conglom_band[event_start:event_stop] = 1
 
             # Put in output-df
-            output.append((event_start, event_stop,
-                           constants['BAND_STARTS'][band_idx],
-                           constants['BAND_STOPS'][band_idx],
-                           amp, fhom, dur, prod, False))
+            if win_idx is not None:
+                output.append((event_start, event_stop,
+                               constants['BAND_STARTS'][band_idx],
+                               constants['BAND_STOPS'][band_idx],
+                               amp, fhom, dur, prod, False, win_idx))
+            else:
+                output.append((event_start, event_stop,
+                               constants['BAND_STARTS'][band_idx],
+                               constants['BAND_STOPS'][band_idx],
+                               amp, fhom, dur, prod, False))
         else:
-
             j += 1
 
     return [output, conglom_band]
@@ -527,6 +538,18 @@ def _sliding_snr(np_x, bp_x, fs, wind_secs):
 
 class CSDetector(Method):
 
+    algorithm = 'CS_DETECTOR'
+    version = '1.0.0b1'
+    dtype = [('event_start', 'int32'),
+             ('event_stop', 'int32'),
+             ('low_fc', 'float32'),
+             ('high_fc', 'float32'),
+             ('amp', 'float32'),
+             ('fhom', 'float32'),
+             ('dur', 'float32'),
+             ('prod', 'float32'),
+             ('type', 'bool')]
+
     def __init__(self, **kwargs):
         """
         Beta version of CS detection algorithm. Which was used to develop
@@ -558,17 +581,3 @@ class CSDetector(Method):
         """
 
         super().__init__(detect_hfo_cs_beta, **kwargs)
-
-        self.algorithm = 'CS_DETECTOR'
-        self.version = '1.0.0b1'
-        self.dtype = [('event_start', 'int32'),
-                      ('event_stop', 'int32'),
-                      ('low_fc', 'float32'),
-                      ('high_fc', 'float32'),
-                      ('amp', 'float32'),
-                      ('fhom', 'float32'),
-                      ('dur', 'float32'),
-                      ('prod', 'float32'),
-                      ('type', 'bool')]
-
-        self._window_indices = False

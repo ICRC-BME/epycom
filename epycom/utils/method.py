@@ -39,16 +39,12 @@ class Method:
 
     run_windowed(data, window_size=5000, overlap=None, n_cores=None)
     """
+
     def __init__(self, compute_function, **kwargs):
-        self.algorithm = ''
-        self.version = ''
-        self.dtype = []
 
         self._params = kwargs
         self._compute_function = compute_function
         self._check_params()
-
-        self._window_indices = True
 
         return
 
@@ -88,9 +84,10 @@ class Method:
         if self._compute_function is not None:
             for key in self._params.keys():
                 if key not in func_sig.parameters.keys():
-                    warnings.warn(f"Unrecognized keyword argument {key}.\
-                                    It will be ignored",
-                                  RuntimeWarning)
+                    if key != 'win_idx':
+                        warnings.warn(f"Unrecognized keyword argument {key}.\
+                                        It will be ignored",
+                                      RuntimeWarning)
                     keys_to_pop.append(key)
         for key in keys_to_pop:
             self._params.pop(key)
@@ -136,9 +133,9 @@ class Method:
         if n_cores is None or mp.cpu_count() < 2:
             results = []
 
-            for ci, idx in enumerate(window_idxs):
-                if not self._window_indices:
-                    self._params['sample_offset'] = idx[0]
+            for wi, idx in enumerate(window_idxs):
+                self._params['win_idx'] = wi
+                self._check_params()
                 if data.ndim > 1:
                     results.append(self.compute(data[:, idx[0]: idx[1]]))
                 else:
@@ -151,28 +148,26 @@ class Method:
             pool = mp.Pool(n_cores)
 
             chunks = []
-            for idx in window_idxs:
-                if not self._window_indices:
-                    self._params['sample_offset'] = idx[0]
+            for wi, idx in enumerate(window_idxs):
+                self._params['win_idx'] = wi
+                self._check_params()
                 if data.ndim > 1:
                     chunks.append((data[:, idx[0]: idx[1]]))
                 else:
                     chunks.append((data[idx[0]: idx[1]]))
 
-            # TODO: pass parameters into comput function!!!!
             results = pool.map(self.compute, chunks)
 
             pool.close()
 
-        # Output dtype
-        if self._window_indices:
-            output = rfn.merge_arrays([window_idxs,
-                                       np.array(results, self.dtype)],
-                                      flatten=True,
-                                      usemask=False)
-        else:
-            # Make sure the results list is flat
+        # If win_idx exists in params it means we do not have to add it
+        if 'win_idx' in self._params.keys():
             results = list(chain.from_iterable(results))
-            output = np.array(results, self.dtype)
-
-        return output
+            return np.array(results, self.dtype+[('win_idx', 'int32')])
+        else:
+            idx_arr = np.empty(n_windows, [('win_idx', 'int32')])
+            idx_arr[:] = np.arange(n_windows)
+            return rfn.merge_arrays([np.array(results, self.dtype),
+                                     idx_arr],
+                                    flatten=True,
+                                    usemask=False)

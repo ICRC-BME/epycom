@@ -59,6 +59,16 @@ def compute_signal_stats(sig):
 
 class SignalStats(Method):
 
+    algorithm = 'SIGNAL_STATISTICS'
+    version = '1.0.0'
+    dtype = [('power_std', 'float32'),
+             ('power_mean', 'float32'),
+             ('power_median', 'float32'),
+             ('power_max', 'float32'),
+             ('power_min', 'float32'),
+             ('power_perc25', 'float32'),
+             ('power_perc75', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Class to analyze basic signal statistics
@@ -72,12 +82,4 @@ class SignalStats(Method):
 
         super().__init__(compute_signal_stats, **kwargs)
 
-        self.algorithm = 'SIGNAL_STATISTICS'
-        self.version = '1.0.0'
-        self.dtype = [('power_std', 'float32'),
-                      ('power_mean', 'float32'),
-                      ('power_median', 'float32'),
-                      ('power_max', 'float32'),
-                      ('power_min', 'float32'),
-                      ('power_perc25', 'float32'),
-                      ('power_perc75', 'float32')]
+        

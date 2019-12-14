@@ -56,6 +56,10 @@ def compute_relative_entropy(sig):
 
 class RelativeEntropy(Method):
 
+    algorithm = 'RELATIVE_ENTROPY'
+    version = '1.0.0'
+    dtype = [('ren', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Calculation of Kullback-Leibler divergence:
@@ -64,7 +68,3 @@ class RelativeEntropy(Method):
         """
 
         super().__init__(compute_relative_entropy, **kwargs)
-
-        self.algorithm = 'RELATIVE_ENTROPY'
-        self.version = '1.0.0'
-        self.dtype = [('ren', 'float32')]

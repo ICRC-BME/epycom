@@ -193,6 +193,10 @@ def compute_lyapunov_exponent(data, fs=5000, dimension=5, sample_lag=None,
 
 class LyapunovExponent(Method):
 
+    algorithm = 'LYAPUNOV_EXPONENT'
+    version = '1.0.0'
+    dtype = [('lyapunov_exponent', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Lyapnov largest exponent estimation according to Rosenstein algorythm
@@ -216,7 +220,3 @@ class LyapunovExponent(Method):
         """
 
         super().__init__(compute_lyapunov_exponent, **kwargs)
-
-        self.algorithm = 'LYAPUNOV_EXPONENT'
-        self.version = '1.0.0'
-        self.dtype = [('lyapunov_exponent', 'float32')]

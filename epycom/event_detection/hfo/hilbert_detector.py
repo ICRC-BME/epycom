@@ -18,7 +18,7 @@ from ...utils.method import Method
 def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
                        window=10, window_overlap=0,
                        band_spacing='linear', num_bands=300,
-                       cyc_th=1, gap_th=1, mp=1, sample_offset=0):
+                       cyc_th=1, gap_th=1, mp=1, win_idx=None):
     """
     Slightly modified algorithm which uses the 2D HFO hilbert detection
     used in Kucewicz et al. 2014.
@@ -47,9 +47,9 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
         Number of cycles for gaps (default=1)
     mp: int
         Number of cores to use (default=1)
-    sample_offset: int
-        Offset which is added to the final detection. This is used when the
-        function is run in separate windows. Default = 0
+    win_idx: int
+        Statistical window index. This is used when the
+        function is run in separate windows. Default = None
 
     Returns
     -------
@@ -127,9 +127,14 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
         frequency_at_max = coffs[int(outline[np.argmax(outline[:, 3]), 0])]
         max_amplitude = max(outline[:, 3])
 
-        output.append((start+sample_offset, stop+sample_offset,
-                       freq_min, freq_max, frequency_at_max,
-                       max_amplitude))
+        if win_idx is not None:
+            output.append((start, stop,
+                           freq_min, freq_max, frequency_at_max,
+                           max_amplitude, win_idx))
+        else:
+            output.append((start, stop,
+                           freq_min, freq_max, frequency_at_max,
+                           max_amplitude))
 
         # Plot the image
 # if plot_flag:
@@ -166,7 +171,7 @@ def _band_z_score_detect(args):
     threshold = args[7]
 
     tdetects = []
-    thresh_sig = np.zeros(len(x_cond), dtype='int8')
+    thresh_sig = np.zeros(len(x_cond), dtype='bool')
 
     b, a = butter(3, bot / (fs / 2), 'highpass')
     fx = filtfilt(b, a, x_cond)
@@ -175,10 +180,7 @@ def _band_z_score_detect(args):
     fx = filtfilt(b, a, fx)
 
     # Compute the z-scores
-
-    ms = np.mean(fx)
-    sd = np.std(fx)
-    fx = [(x - ms) / sd for x in fx]
+    fx = (fx - np.mean(fx)) / np.std(fx)
 
     hfx = np.abs(hilbert(fx))
 
@@ -254,6 +256,15 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
 
 class HilbertDetector(Method):
 
+    algorithm = 'HILBERT_DETECTOR'
+    version = '1.0.0'
+    dtype = [('event_start', 'int32'),
+             ('event_stop', 'int32'),
+             ('freq_min', 'float32'),
+             ('freq_max', 'float32'),
+             ('freq_at_max', 'float32'),
+             ('max_amplitude', 'float32')]
+
     def __init__(self, **kwargs):
         """
         Slightly modified algorithm which uses the 2D HFO hilbert detection
@@ -295,14 +306,3 @@ class HilbertDetector(Method):
         """
 
         super().__init__(detect_hfo_hilbert, **kwargs)
-
-        self.algorithm = 'HILBERT_DETECTOR'
-        self.version = '1.0.0'
-        self.dtype = [('event_start', 'int32'),
-                      ('event_stop', 'int32'),
-                      ('freq_min', 'float32'),
-                      ('freq_max', 'float32'),
-                      ('freq_at_max', 'float32'),
-                      ('max_amplitude', 'float32')]
-
-        self._window_indices = False

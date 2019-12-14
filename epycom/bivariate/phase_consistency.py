@@ -75,6 +75,10 @@ def compute_phase_const(sig, lag=500, lag_step=50):
 
 class PhaseConsistency(Method):
 
+    algorithm = 'PHASE_CONSISTENCY'
+    version = '1.0.0'
+    dtype = [('phase_const', 'float32')]
+
     def __init__(self, **kwargs):
         """
         **under development**
@@ -94,7 +98,3 @@ class PhaseConsistency(Method):
         """
 
         super().__init__(compute_phase_const, **kwargs)
-
-        self.algorithm = 'PHASE_CONSISTENCY'
-        self.version = '1.0.0'
-        self.dtype = [('phase_const', 'float32')]
