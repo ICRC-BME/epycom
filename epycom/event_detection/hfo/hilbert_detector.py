@@ -171,7 +171,7 @@ def _band_z_score_detect(args):
     threshold = args[7]
 
     tdetects = []
-    thresh_sig = np.zeros(len(x_cond), dtype='int8')
+    thresh_sig = np.zeros(len(x_cond), dtype='bool')
 
     b, a = butter(3, bot / (fs / 2), 'highpass')
     fx = filtfilt(b, a, x_cond)
@@ -180,10 +180,7 @@ def _band_z_score_detect(args):
     fx = filtfilt(b, a, fx)
 
     # Compute the z-scores
-
-    ms = np.mean(fx)
-    sd = np.std(fx)
-    fx = [(x - ms) / sd for x in fx]
+    fx = (fx - np.mean(fx)) / np.std(fx)
 
     hfx = np.abs(hilbert(fx))
 
