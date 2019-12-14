@@ -156,7 +156,6 @@ class Method:
                 else:
                     chunks.append((data[idx[0]: idx[1]]))
 
-            # TODO: pass parameters into comput function!!!!
             results = pool.map(self.compute, chunks)
 
             pool.close()
