@@ -72,10 +72,11 @@ class Method:
             Result of the compute function
         """
         
-        data = args[0]
-        if len(args) > 1:
+        if len(args) > 1 and isinstance(args[1], dict):
+            data = args[0]
             params_override = args[1]
         else:
+            data = args
             params_override = None
         
         if np.any(data == np.nan):
