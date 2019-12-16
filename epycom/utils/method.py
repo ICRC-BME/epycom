@@ -57,7 +57,7 @@ class Method:
         self._params = params
         self._check_params()
 
-    def compute(self, data):
+    def compute(self, args):
         """
         Function to run underlying compute function.
 
@@ -71,12 +71,27 @@ class Method:
         result: float | tuple
             Result of the compute function
         """
+        
+        if len(args) > 1 and isinstance(args[1], dict):
+            data = args[0]
+            params_override = args[1]
+        else:
+            data = args
+            params_override = None
+        
         if np.any(data == np.nan):
             warnings.warn(RuntimeWarning,
                           "Detected NaN in time series returning Nan")
             return np.nan
 
-        return self._compute_function(data, **self._params)
+        # Override window index parameter when multiprocessing
+        if params_override is not None:
+            params = self._params.copy()
+            for i in params_override.items():
+                params[i[0]] = i[1]
+            return self._compute_function(data, **params)
+        else:
+            return self._compute_function(data, **self._params)
 
     def _check_params(self):
         func_sig = inspect.signature(self._compute_function)
@@ -152,12 +167,13 @@ class Method:
                 self._params['win_idx'] = wi
                 self._check_params()
                 if data.ndim > 1:
-                    chunks.append((data[:, idx[0]: idx[1]]))
+                    chunks.append((data[:, idx[0]: idx[1]],
+                                   {'win_idx': wi}))
                 else:
-                    chunks.append((data[idx[0]: idx[1]]))
+                    chunks.append((data[idx[0]: idx[1]],
+                                   {'win_idx': wi}))
 
             results = pool.map(self.compute, chunks)
-
             pool.close()
 
         # If win_idx exists in params it means we do not have to add it
