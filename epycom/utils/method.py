@@ -88,7 +88,6 @@ class Method:
             params = self._params.copy()
             for i in params_override.items():
                 params[i[0]] = i[1]
-            print(params)
             return self._compute_function(data, **params)
         else:
             return self._compute_function(data, **self._params)
