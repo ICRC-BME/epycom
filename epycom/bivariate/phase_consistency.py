@@ -98,3 +98,4 @@ class PhaseConsistency(Method):
         """
 
         super().__init__(compute_phase_const, **kwargs)
+        self._event_flag = False

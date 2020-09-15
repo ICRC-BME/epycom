@@ -65,3 +65,4 @@ class HjorthComplexity(Method):
         """
 
         super().__init__(compute_hjorth_complexity, **kwargs)
+        self._event_flag = False

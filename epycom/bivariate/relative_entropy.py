@@ -68,3 +68,4 @@ class RelativeEntropy(Method):
         """
 
         super().__init__(compute_relative_entropy, **kwargs)
+        self._event_flag = False

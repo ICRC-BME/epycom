@@ -53,7 +53,7 @@ from ...utils.method import Method
 
 
 def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
-                       low_fc=None, high_fc=None, mp=1, win_idx=None):
+                       low_fc=None, high_fc=None, mp=1):
     """
     Beta version of CS detection algorithm. Which was used to develop
     CS detection algorithm.
@@ -74,9 +74,6 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         High cut-off frequency
     mp: int
         Number of cores to use (def = 1)
-    win_idx: int
-        Statistical window index. This is used when the
-        function is run in separate windows. Default = None
 
     Returns
     -------
@@ -197,7 +194,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         for band_idx in range(n_bands):
             iter_args.append([sig, fs, norm_coefs, band_idx,
                               cycs_per_detect, threshold,
-                              edge_thresh, constants, win_idx])
+                              edge_thresh, constants])
 
         band_concat = work_pool.map(_detect_band, iter_args)
         work_pool.join()
@@ -214,7 +211,7 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         for band_idx in range(n_bands):
 
             args = [sig, fs, norm_coefs, band_idx, cycs_per_detect, threshold,
-                    edge_thresh, constants, win_idx]
+                    edge_thresh, constants]
 
             res = _detect_band(args)
             conglom_arr[band_idx, :] = res[1]
@@ -254,13 +251,8 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
             prod = det_arr[:, 6].max()
             dur = float(event_stop - event_start) / fs
 
-            if win_idx is not None:
-                output.append((event_start, event_stop, low_fc, high_fc,
-                               amp, fhom, dur, prod, True, win_idx))
-            else:
-
-                output.append((event_start, event_stop, low_fc, high_fc,
-                               amp, fhom, dur, prod, True))
+            output.append((event_start, event_stop, low_fc, high_fc,
+                           amp, fhom, dur, prod, True))
 
     if mp > 1:
         work_pool.close()
@@ -284,7 +276,6 @@ def _detect_band(args):
     threshold = args[5]
     edge_thresh = args[6]
     constants = args[7]
-    win_idx = args[8]
 
     conglom_band = np.zeros(len(x), 'bool')
     output = []
@@ -409,16 +400,10 @@ def _detect_band(args):
             conglom_band[event_start:event_stop] = 1
 
             # Put in output-df
-            if win_idx is not None:
-                output.append((event_start, event_stop,
-                               constants['BAND_STARTS'][band_idx],
-                               constants['BAND_STOPS'][band_idx],
-                               amp, fhom, dur, prod, False, win_idx))
-            else:
-                output.append((event_start, event_stop,
-                               constants['BAND_STARTS'][band_idx],
-                               constants['BAND_STOPS'][band_idx],
-                               amp, fhom, dur, prod, False))
+            output.append((event_start, event_stop,
+                           constants['BAND_STARTS'][band_idx],
+                           constants['BAND_STOPS'][band_idx],
+                           amp, fhom, dur, prod, False))
         else:
             j += 1
 
@@ -581,3 +566,4 @@ class CSDetector(Method):
         """
 
         super().__init__(detect_hfo_cs_beta, **kwargs)
+        self._event_flag = True

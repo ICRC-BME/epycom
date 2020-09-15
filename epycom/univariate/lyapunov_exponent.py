@@ -220,3 +220,4 @@ class LyapunovExponent(Method):
         """
 
         super().__init__(compute_lyapunov_exponent, **kwargs)
+        self._event_flag = False

@@ -17,7 +17,7 @@ from ...utils.method import Method
 
 
 def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
-                  window_overlap=0.25, win_idx=None):
+                  window_overlap=0.25):
     """
     Line-length detection algorithm.
 
@@ -33,9 +33,6 @@ def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
         Sliding window size in samples
     window_overlap: float
         Fraction of the window overlap (0 to 1)
-    win_idx: int
-        Statistical window index. This is used when the
-        function is run in separate windows. Default = None
 
     Returns
     -------
@@ -96,10 +93,7 @@ def detect_hfo_ll(sig, fs=5000, threshold=3, window_size=100,
             # Optional feature calculations can go here
 
             # Write into output
-            if win_idx is not None:
-                output.append((event_start, event_stop, win_idx))
-            else:
-                output.append((event_start, event_stop))
+            output.append((event_start, event_stop))
 
             LL_idx += 1
         else:
@@ -142,3 +136,4 @@ class LineLengthDetector(Method):
         """
 
         super().__init__(detect_hfo_ll, **kwargs)
+        self._event_flag = True

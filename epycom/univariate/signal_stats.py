@@ -81,5 +81,4 @@ class SignalStats(Method):
         """
 
         super().__init__(compute_signal_stats, **kwargs)
-
-        
+        self._event_flag = False

@@ -64,3 +64,4 @@ class HjorthMobility(Method):
         """
 
         super().__init__(compute_hjorth_mobility, **kwargs)
+        self._event_flag = False

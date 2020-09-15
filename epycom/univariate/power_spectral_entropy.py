@@ -56,3 +56,4 @@ class PowerSpectralEntropy(Method):
         """
 
         super().__init__(compute_pse, **kwargs)
+        self._event_flag = False
