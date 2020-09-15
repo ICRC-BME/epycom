@@ -23,6 +23,9 @@ def test_detect_spikes(create_testing_eeg_data, benchmark):
     compute_instance = BarkmeierDetector()
     dets = benchmark(compute_instance.run_windowed,
                      create_testing_eeg_data, 50000)
+    compute_instance.run_windowed(create_testing_eeg_data,
+                                  5000,
+                                  n_cores=2)
 
     expected_vals = (20242,
                      1368.2334,
@@ -47,6 +50,10 @@ def test_detect_hfo_ll(create_testing_eeg_data, benchmark):
     dets = benchmark(compute_instance.run_windowed,
                      filt_data, 50000)
 
+    compute_instance.run_windowed(filt_data,
+                                  5000,
+                                  n_cores=2)
+
     expected_vals = [(5040, 5198),
                      (34992, 35134)]
 
@@ -66,6 +73,10 @@ def test_detect_hfo_rms(create_testing_eeg_data, benchmark):
     dets = benchmark(compute_instance.run_windowed,
                      filt_data, 50000)
 
+    compute_instance.run_windowed(filt_data,
+                                  5000,
+                                  n_cores=2)
+
     expected_vals = [(5040, 5198),
                      (35008, 35134)]
 
@@ -82,7 +93,11 @@ def test_detect_hfo_hilbert(create_testing_eeg_data, benchmark):
                                'threshold': 7}
     dets = benchmark(compute_instance.run_windowed,
                      create_testing_eeg_data, 50000)
-    print(dets)
+
+    compute_instance.run_windowed(create_testing_eeg_data,
+                                  5000,
+                                  n_cores=2)
+
     expected_vals = [(5056, 5123),
                      (35028, 35063)]
 
@@ -101,6 +116,10 @@ def test_detect_hfo_cs_beta(create_testing_eeg_data, benchmark):
 
     dets = benchmark(compute_instance.run_windowed,
                      create_testing_eeg_data, 50000)
+
+    compute_instance.run_windowed(create_testing_eeg_data,
+                                  5000,
+                                  n_cores=2)
 
     # Only the second HFO is caught by CS (due to signal artificiality)
     expected_vals = [(34992, 35090),  # Band detection
