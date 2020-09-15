@@ -123,3 +123,4 @@ class Coherence(Method):
         """
 
         super().__init__(compute_coherence, **kwargs)
+        self._event_flag = False

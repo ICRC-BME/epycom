@@ -70,3 +70,4 @@ class PhaseSynchrony(Method):
         Quiroga et al. 2008
         """
         super().__init__(compute_phase_sync, **kwargs)
+        self._event_flag = False

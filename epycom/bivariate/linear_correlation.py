@@ -96,3 +96,4 @@ class LinearCorrelation(Method):
 
         """
         super().__init__(compute_lincorr, **kwargs)
+        self._event_flag = False

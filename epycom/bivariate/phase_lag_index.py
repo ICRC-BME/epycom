@@ -118,3 +118,4 @@ class PhaseLagIndex(Method):
         # TODO: print out warnings if conditions for warnings in doc string
 
         super().__init__(compute_pli, **kwargs)
+        self._event_flag = False

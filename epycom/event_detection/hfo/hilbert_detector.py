@@ -18,7 +18,7 @@ from ...utils.method import Method
 def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
                        window=10, window_overlap=0,
                        band_spacing='linear', num_bands=300,
-                       cyc_th=1, gap_th=1, mp=1, win_idx=None):
+                       cyc_th=1, gap_th=1, mp=1):
     """
     Slightly modified algorithm which uses the 2D HFO hilbert detection
     used in Kucewicz et al. 2014.
@@ -47,9 +47,6 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
         Number of cycles for gaps (default=1)
     mp: int
         Number of cores to use (default=1)
-    win_idx: int
-        Statistical window index. This is used when the
-        function is run in separate windows. Default = None
 
     Returns
     -------
@@ -127,14 +124,9 @@ def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
         frequency_at_max = coffs[int(outline[np.argmax(outline[:, 3]), 0])]
         max_amplitude = max(outline[:, 3])
 
-        if win_idx is not None:
-            output.append((start, stop,
-                           freq_min, freq_max, frequency_at_max,
-                           max_amplitude, win_idx))
-        else:
-            output.append((start, stop,
-                           freq_min, freq_max, frequency_at_max,
-                           max_amplitude))
+        output.append((start, stop,
+                       freq_min, freq_max, frequency_at_max,
+                       max_amplitude))
 
         # Plot the image
 # if plot_flag:
@@ -306,3 +298,4 @@ class HilbertDetector(Method):
         """
 
         super().__init__(detect_hfo_hilbert, **kwargs)
+        self._event_flag = True

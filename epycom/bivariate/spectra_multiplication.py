@@ -65,3 +65,4 @@ class SpectraMultiplication(Method):
         domain where the mean and std is calculated
         """
         super().__init__(compute_spect_multp, **kwargs)
+        self._event_flag = False

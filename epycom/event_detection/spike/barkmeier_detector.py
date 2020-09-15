@@ -35,7 +35,7 @@ def detect_spikes_barkmeier(sig, fs=5000, scale=70, std_coeff=4,
         sampling frequency of the signal
     scale: float\
         scaling parameter (def=70)
-    std_coef: float
+    std_coeff: float
         z-score threshold for spike detection (def=4)
     through_search: float
         extent to which search for spike throughs in s (def=0.04)
@@ -203,3 +203,4 @@ class BarkmeierDetector(Method):
         """
 
         super().__init__(detect_spikes_barkmeier, **kwargs)
+        self._event_flag = True
