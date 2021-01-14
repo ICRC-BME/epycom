@@ -6,6 +6,7 @@ stages:
 
 before_script:
   - pip install wheel
+  - pip install numpy
 
 test_job:
   stage: test
