@@ -1,4 +1,4 @@
-image: python:3.6
+image: python:3.8
 
 stages:
   - test
@@ -6,7 +6,6 @@ stages:
 
 before_script:
   - pip install wheel
-  - pip install numpy
 
 test_job:
   stage: test
