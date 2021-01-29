@@ -176,12 +176,12 @@ class Method:
         # else:
 
         if self._event_flag is True:
-            results_sizes = np.empty(n_windows, np.int8)
+            results_sizes = np.empty(n_windows, np.int32)
             for i, r in enumerate(results):
-                results_sizes[i] = len(r)
+                results_sizes[i] = np.int32(len(r))
             idx_arr = np.empty(np.sum(results_sizes), [('win_idx', 'int32')])
             if len(idx_arr) > 0:
-                idx_arr[0] = 0
+                idx_arr[:] = 0
             for i, idx in enumerate(np.cumsum(results_sizes)):
                 idx_arr[idx:] = i+1
             results = list(chain.from_iterable(results))
