@@ -14,7 +14,10 @@ from epycom.univariate import (SignalStats,
                                PowerSpectralEntropy,
                                LyapunovExponent,
                                HjorthMobility,
-                               HjorthComplexity)
+                               HjorthComplexity,
+                               ModulationIndex,
+                               MeanVectorLength,
+                               PhaseLockingValue)
 
 
 def test_signal_stats(create_testing_data, benchmark):
@@ -74,3 +77,36 @@ def test_hjorth_complexity(create_testing_data, benchmark):
                                   5000,
                                   n_cores=2)
     assert isclose(res[0][0], 2.27728, abs_tol=10e-6)
+
+
+def test_modulation_index(create_testing_data, benchmark):
+    compute_instance = ModulationIndex()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0], 8.45166582264254e-05, abs_tol=10e-7)
+
+
+def test_mean_vector_length(create_testing_data, benchmark):
+    compute_instance = MeanVectorLength(fs=5000)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0].real, 0.0028143270205255025, abs_tol=10e-6)
+    # assert isclose(res[0][0].imag, -0.007199158327167037, abs_tol=10e-6)
+
+
+def test_phase_locking_value(create_testing_data, benchmark):
+    compute_instance = PhaseLockingValue(fs=5000)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data,
+                    50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0].real, 0.0027088632909749904, abs_tol=10e-6)
+    # assert isclose(res[0][0].imag, -0.007152732373542481, abs_tol=10e-6)
