@@ -72,7 +72,7 @@ class PhaseLockingValue(Method):
 
     algorithm = 'PHASE_LOCKING_VALUE'
     version = '1.0.0'
-    dtype = [('plv', 'float32')]
+    dtype = [('plv', 'complex64')]
 
     def __init__(self, **kwargs):
         """

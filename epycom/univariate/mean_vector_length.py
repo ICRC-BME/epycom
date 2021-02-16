@@ -68,7 +68,7 @@ class MeanVectorLength(Method):
 
     algorithm = 'MEAN_VECTOR_LENGTH'
     version = '1.0.0'
-    dtype = [('mvl', 'float32')]
+    dtype = [('mvl', 'complex64')]
 
     def __init__(self, **kwargs):
         """
