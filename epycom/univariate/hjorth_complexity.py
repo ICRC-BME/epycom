@@ -47,6 +47,7 @@ def compute_hjorth_complexity(signal, fs=5000):
 class HjorthComplexity(Method):
 
     algorithm = 'HJORTH_COMPLEXITY'
+    algorithm_type = 'univariate'
     ersion = '1.0.0'
     dtype = [('hjorth_complexity', 'float32')]
 
@@ -65,4 +66,3 @@ class HjorthComplexity(Method):
         """
 
         super().__init__(compute_hjorth_complexity, **kwargs)
-        self._event_flag = False

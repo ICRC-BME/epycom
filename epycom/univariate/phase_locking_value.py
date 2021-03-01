@@ -71,6 +71,7 @@ def plv_count(data, fs, lowband=[8, 12], highband=[250, 600]):
 class PhaseLockingValue(Method):
 
     algorithm = 'PHASE_LOCKING_VALUE'
+    algorithm_type = 'univariate'
     version = '1.0.0'
     dtype = [('plv', 'complex64')]
 
@@ -91,4 +92,3 @@ class PhaseLockingValue(Method):
         """
 
         super().__init__(plv_count, **kwargs)
-        self._event_flag = False

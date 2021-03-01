@@ -249,6 +249,7 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
 class HilbertDetector(Method):
 
     algorithm = 'HILBERT_DETECTOR'
+    algorithm_type = 'event'
     version = '1.0.0'
     dtype = [('event_start', 'int32'),
              ('event_stop', 'int32'),
@@ -298,4 +299,3 @@ class HilbertDetector(Method):
         """
 
         super().__init__(detect_hfo_hilbert, **kwargs)
-        self._event_flag = True

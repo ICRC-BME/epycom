@@ -175,7 +175,7 @@ class Method:
         #     return np.array(results, self.dtype+[('win_idx', 'int32')])
         # else:
 
-        if self._event_flag is True:
+        if self.algorithm_type == 'event':
             results_sizes = np.empty(n_windows, np.int32)
             for i, r in enumerate(results):
                 results_sizes[i] = np.int32(len(r))

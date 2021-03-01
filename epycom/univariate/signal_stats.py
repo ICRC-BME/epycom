@@ -60,6 +60,7 @@ def compute_signal_stats(sig):
 class SignalStats(Method):
 
     algorithm = 'SIGNAL_STATISTICS'
+    algorithm_type = 'univariate'
     version = '1.0.0'
     dtype = [('power_std', 'float32'),
              ('power_mean', 'float32'),
@@ -81,4 +82,3 @@ class SignalStats(Method):
         """
 
         super().__init__(compute_signal_stats, **kwargs)
-        self._event_flag = False

@@ -67,6 +67,7 @@ def mvl_count(data, fs, lowband=[8, 12], highband=[250, 600]):
 class MeanVectorLength(Method):
 
     algorithm = 'MEAN_VECTOR_LENGTH'
+    algorithm_type = 'univariate'
     version = '1.0.0'
     dtype = [('mvl', 'complex64')]
 
@@ -87,4 +88,3 @@ class MeanVectorLength(Method):
         """
 
         super().__init__(mvl_count, **kwargs)
-        self._event_flag = False

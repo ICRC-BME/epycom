@@ -76,6 +76,7 @@ def compute_phase_const(sig, lag=500, lag_step=50):
 class PhaseConsistency(Method):
 
     algorithm = 'PHASE_CONSISTENCY'
+    algorithm_type = 'bivariate'
     version = '1.0.0'
     dtype = [('phase_const', 'float32')]
 
@@ -98,4 +99,3 @@ class PhaseConsistency(Method):
         """
 
         super().__init__(compute_phase_const, **kwargs)
-        self._event_flag = False

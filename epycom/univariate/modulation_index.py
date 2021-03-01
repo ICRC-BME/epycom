@@ -69,6 +69,7 @@ def mi_count(data, nbins=18):
 class ModulationIndex(Method):
 
     algorithm = 'MODULATION_INDEX'
+    algorithm_type = 'univariate'
     version = '1.0.0'
     dtype = [('mi', 'float32')]
 
@@ -85,4 +86,3 @@ class ModulationIndex(Method):
         """
 
         super().__init__(mi_count, **kwargs)
-        self._event_flag = False

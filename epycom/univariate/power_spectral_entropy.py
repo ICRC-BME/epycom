@@ -42,6 +42,7 @@ def compute_pse(sig):
 class PowerSpectralEntropy(Method):
 
     algorithm = 'POWER_SPECTRAL_ENTROPY'
+    algorithm_type = 'univariate'
     version = '1.0.0'
     dtype = [('pse', 'float32')]
 
@@ -56,4 +57,3 @@ class PowerSpectralEntropy(Method):
         """
 
         super().__init__(compute_pse, **kwargs)
-        self._event_flag = False

@@ -59,7 +59,7 @@ def compute_coherence(sig, fs=5000, fband=[1.0, 4.0], lag=0, lag_step=0,
     """
 
     if type(sig) != np.ndarray:
-        raise TypeError(f"Signals have to be in numpy arrays!")
+        raise TypeError("Signals have to be in numpy arrays!")
 
     if lag == 0:
         lag_step = 1
@@ -91,6 +91,7 @@ def compute_coherence(sig, fs=5000, fband=[1.0, 4.0], lag=0, lag_step=0,
 class Coherence(Method):
 
     algorithm = 'COHERENCE'
+    algorithm_type = 'bivariate'
     version = '1.0.0'
     dtype = [('max_coh', 'float32'),
              ('tau', 'float32')]
@@ -123,4 +124,3 @@ class Coherence(Method):
         """
 
         super().__init__(compute_coherence, **kwargs)
-        self._event_flag = False
