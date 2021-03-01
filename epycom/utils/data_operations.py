@@ -33,6 +33,9 @@ def calculate_absolute_samples(computation_result, window_size, overlap):
         Structured array with window starts
     """
 
+    if overlap is None:
+        overlap = 0
+
     return np.floor(computation_result['win_idx']
                     * window_size * (1 - overlap)).astype(np.int32)
 
