@@ -17,20 +17,20 @@ def mi_count(data, nbins=18):
     """
     Function to compute modulation index (MI) of given data
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     data: numpy.ndarray
         data from which MI is computed
     nbins: int
         number of bins in which data will be separated, can affecct the result, default is 18
 
-    Returns:
-    --------
+    Returns
+    -------
     MI: float64
         modulation index computed as KL/np.log(nbins)
 
-    Example:
-    --------
+    Example
+    -------
     MI = mi_count(data)
 
     """
@@ -77,8 +77,8 @@ class ModulationIndex(Method):
         """
         Modulation Index
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         data: numpy.ndarray
             data from which MI is computed
         nbins: int
