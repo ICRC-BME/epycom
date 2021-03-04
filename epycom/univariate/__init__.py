@@ -6,4 +6,7 @@ from .power_spectral_entropy import compute_pse, PowerSpectralEntropy
 from .modulation_index import mi_count, ModulationIndex
 from .mean_vector_length import mvl_count, MeanVectorLength
 from .phase_locking_value import plv_count, PhaseLockingValue
-
+from .arr import arr_compute, AutoregressiveResidualModulation
+from .shannon_entropy import shanon_entropy, ShannonEntropy
+from .approximate_entropy import approximate_entropy, ApproximateEntropy
+from .sample_entropy import sample_entropy, SampleEntropy

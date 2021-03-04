@@ -17,8 +17,8 @@ def mvl_count(data, fs, lowband=[8, 12], highband=[250, 600]):
     """
     Function to compute mean vector lenght (MVL) of given data
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     fs: float64
         frequency
     data: numpy.ndarray
@@ -28,13 +28,13 @@ def mvl_count(data, fs, lowband=[8, 12], highband=[250, 600]):
     highband: list
             high frequency band boundaries [x, y], default [250, 600]
 
-    Returns:
-    --------
+    Returns
+    -------
     mvl: numpy.complex128
         MVL of given signal
 
-    Example:
-    --------
+    Example
+    -------
     MVL = mvl_count(5000.0, data)
 
     """
@@ -75,8 +75,8 @@ class MeanVectorLength(Method):
         """
         Mean vector length
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         fs: float64
             frequency
         data: numpy.ndarray

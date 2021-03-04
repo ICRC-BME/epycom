@@ -17,8 +17,8 @@ def plv_count(data, fs, lowband=[8, 12], highband=[250, 600]):
     """
     Function to compute phase-locking value (PLV) of given data
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     fs: float64
         frequency
     data: numpy.ndarray
@@ -28,13 +28,13 @@ def plv_count(data, fs, lowband=[8, 12], highband=[250, 600]):
     highband: list
             high frequency band boundaries [x, y], default [250, 600]
 
-    Returns:
-    --------
+    Returns
+    -------
     MI: numpy.complex128
         modulation index computed as KL/np.log(nbins)
 
-    Example:
-    --------
+    Example
+    -------
     PLV = plv_count(5000.0, data)
 
     """
@@ -79,8 +79,8 @@ class PhaseLockingValue(Method):
         """
         Phase locking value
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         fs: float64
             frequency
         data: numpy.ndarray
