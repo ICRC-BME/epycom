@@ -229,17 +229,19 @@ def _corrmtx(x_input, m, method='autocorrelation'):
 
     This function is used by PSD estimator functions. It generates
     the correlation matrix from a correlation data set and a maximum lag.
+    Recorded from spectrum package.
 
     Parameters:
     -----------
     x_input: array
         autocorrelation samples (1D)
     m: int
-        the maximum lag (Depending on the choice of the method, the correlation matrix has different
-        sizes, but the number of rows is always m+1)
+        the maximum lag (Depending on the choice of the method, the 
+        correlation matrix has different sizes, but the number of rows is
+        always m+1)
     method: string
-        'autocorrelation'- (default) X is the (n+m)-by-(m+1) rectangular Toeplitz
-            matrix derived using prewindowed and postwindowed data.
+        'autocorrelation'- (default) X is the (n+m)-by-(m+1) rectangular
+            Toeplitz matrix derived using prewindowed and postwindowed data.
         'prewindowed'- X is the n-by-(m+1) rectangular Toeplitz matrix derived
             using prewindowed data only.
         'postwindowed'- X is the n-by-(m+1) rectangular Toeplitz matrix that
@@ -247,8 +249,9 @@ def _corrmtx(x_input, m, method='autocorrelation'):
         'covariance'- X is the (n-m)-by-(m+1) rectangular Toeplitz matrix
             derived using nonwindowed data.
         'modified'- X is the 2(n-m)-by-(m+1) modified rectangular Toeplitz
-            matrix that generates an autocorrelation estimate for the length n data
-            vector x, derived using forward and backward prediction error estimates.
+            matrix that generates an autocorrelation estimate for the length n
+            data vector x, derived using forward and backward prediction error
+             estimates.
 
     Returns
     -------
@@ -339,10 +342,8 @@ def _corrmtx(x_input, m, method='autocorrelation'):
 
 def _arcovar(x, order):
     """
-    Simple and fast implementation of the covariance AR estimate
-
-    This code is 10 times faster than :func:`arcovar_marple` and more importantly
-    only 10 lines of code, compared to a 200 loc for :func:`arcovar_marple`
+    Simple and fast implementation of the covariance AR estimate.
+    Recorded from spectrum package.
 
     Parameters
     ----------
@@ -366,7 +367,7 @@ def _arcovar(x, order):
     """
 
     X = _corrmtx(x, order, 'covariance')
-    Xc = np.matrix(X[:, 1:])
+    Xc = np.array(X[:, 1:])
     X1 = np.array(X[:, 0])
 
     # Coefficients estimated via the covariance method
@@ -649,10 +650,10 @@ def arr_compute(sig, fs):
         w = w - 1
 
     if any(sig[:]):
-        ARR = np.std(r3) / np.mean(r3)
+        # ARR = np.std(r3) / np.mean(r3)
         ARRm = np.nanstd(r_clean) / np.nanmean(r_clean)
     else:
-        ARR = nan
+        # ARR = nan
         ARRm = nan
 
     # return r1,r2,r3,r_clean,ARR,ARRm
