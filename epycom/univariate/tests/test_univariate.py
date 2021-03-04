@@ -90,7 +90,7 @@ def test_modulation_index(create_testing_data, benchmark):
     compute_instance.run_windowed(create_testing_data,
                                   5000,
                                   n_cores=2)
-    assert isclose(res[0][0], 8.451666e-05, abs_tol=10e-7)
+    assert isclose(res[0][0], 8.5572385e-05, abs_tol=10e-6)
 
 
 def test_mean_vector_length(create_testing_data, benchmark):
