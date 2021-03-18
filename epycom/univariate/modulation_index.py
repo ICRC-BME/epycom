@@ -13,7 +13,7 @@ import scipy.signal as sp
 from ..utils.method import Method
 
 
-def mi_count(data, nbins=18):
+def compute_mi_count(data, nbins=18):
     """
     Function to compute modulation index (MI) of given data
 
@@ -31,7 +31,7 @@ def mi_count(data, nbins=18):
 
     Example
     -------
-    MI = mi_count(data)
+    MI = compute_mi_count(data)
 
     """
 
@@ -85,4 +85,4 @@ class ModulationIndex(Method):
             number of bins in which data will be separated, can affecct the result, default is 18
         """
 
-        super().__init__(mi_count, **kwargs)
+        super().__init__(compute_mi_count, **kwargs)

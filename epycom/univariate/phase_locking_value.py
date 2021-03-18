@@ -13,7 +13,7 @@ import scipy.signal as sp
 from ..utils.method import Method
 
 
-def plv_count(data, fs, lowband=[8, 12], highband=[250, 600]):
+def compute_plv_count(data, fs, lowband=[8, 12], highband=[250, 600]):
     """
     Function to compute phase-locking value (PLV) of given data
 
@@ -35,7 +35,7 @@ def plv_count(data, fs, lowband=[8, 12], highband=[250, 600]):
 
     Example
     -------
-    PLV = plv_count(5000.0, data)
+    PLV = compute_plv_count(data, 5000.0)
 
     """
 
@@ -91,4 +91,4 @@ class PhaseLockingValue(Method):
                 high frequency band boundaries [x, y]
         """
 
-        super().__init__(plv_count, **kwargs)
+        super().__init__(compute_plv_count, **kwargs)

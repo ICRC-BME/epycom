@@ -13,7 +13,7 @@ import scipy.signal as sp
 from ..utils.method import Method
 
 
-def mvl_count(data, fs, lowband=[8, 12], highband=[250, 600]):
+def compute_mvl_count(data, fs, lowband=[8, 12], highband=[250, 600]):
     """
     Function to compute mean vector lenght (MVL) of given data
 
@@ -35,7 +35,7 @@ def mvl_count(data, fs, lowband=[8, 12], highband=[250, 600]):
 
     Example
     -------
-    MVL = mvl_count(5000.0, data)
+    MVL = compute_mvl_count(5000.0, data)
 
     """
     order = 3
@@ -87,4 +87,4 @@ class MeanVectorLength(Method):
                 high frequency band boundaries [x, y]
         """
 
-        super().__init__(mvl_count, **kwargs)
+        super().__init__(compute_mvl_count, **kwargs)

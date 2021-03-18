@@ -598,7 +598,7 @@ def _get_residual(sig, n, winL):
     return res_var
 
 
-def arr_compute(sig, fs):
+def compute_arr(sig, fs):
     """
     Function computes ARR parameters
 
@@ -617,7 +617,7 @@ def arr_compute(sig, fs):
 
     Example
     -------
-    arrm = arr_compute(data, 5000)
+    arrm = compute_arr(data, 5000)
     """
 
     # sig = stats.zscore(sig)
@@ -673,10 +673,11 @@ class AutoregressiveResidualModulation(Method):
 
         Parameters
         ----------
-        sig[channel,samples]: numpy.ndarray
+        sig:
+            numpy.ndarray
         fsamp: float64
             sample frequency
         """
 
-        super().__init__(arr_compute, **kwargs)
+        super().__init__(compute_arr, **kwargs)
         self._event_flag = False

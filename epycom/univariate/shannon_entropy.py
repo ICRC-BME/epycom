@@ -14,7 +14,7 @@ from scipy import stats as stats
 from ..utils.method import Method
 
 
-def shanon_entropy(sig):
+def compute_shanon_entropy(sig):
     """
     Fucntion computes shannon entropy of given signal
 
@@ -51,6 +51,6 @@ class ShannonEntropy(Method):
             Signal to analyze
         """
 
-        super().__init__(shanon_entropy, **kwargs)
+        super().__init__(compute_shanon_entropy, **kwargs)
         self._event_flag = False
 
