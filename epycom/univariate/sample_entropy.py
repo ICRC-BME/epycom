@@ -8,9 +8,10 @@ import numpy as np
 
 # Local imports
 from ..utils.method import Method
+from ..utils.tools import try_jit_decorate
 
 
-def sample_entropy(sig, r, m=2):
+def _sample_entropy(sig, r, m=2):
     """
     Function to compute sample entropy
 
@@ -26,14 +27,10 @@ def sample_entropy(sig, r, m=2):
     Returns
     -------
     entropy: numpy.float64 (computed as -np.log(A / B))
-        approximate entropy
-
-    Example
-    -------
-    sample_entropy = approximate_entropy(data, 0.1*np.nanstd(data))
+        sample entropy
     """
 
-    sig = np.array(sig)
+    # sig = np.array(sig)
     N = sig.shape[0]
 
     # Split time series and save all templates of length m
@@ -50,6 +47,67 @@ def sample_entropy(sig, r, m=2):
     A = np.sum([np.sum(np.abs(xj - x_A).max(axis=1) <= r) - 1 for xj in x_A])
 
     return -np.log(A / B)
+
+
+def compute_sample_entropy(sig, r, m=2, window_size=100,
+                           window_overlap=1):
+    """
+    Function to compute sample entropy
+
+    Parameters
+    ----------
+    sig: np.ndarray
+        1D signal
+    r: np.float64
+        filtering treshold, recommended values: (0.1-0.25)*np.nanstd(sig)
+    m: int
+        window length of compared run of data, recommended (2-8)
+    window_size: int
+        Sliding window size in samples
+    window_overlap: float
+        Fraction of the window overlap (0 to 1)
+
+    Returns
+    -------
+    entro: numpy.float64
+        maximum sample entropy in the given statistical window
+
+    Example
+    -------
+    sample_entropy = compute_sample_entropy(data, 0.1*np.nanstd(data))
+    
+    Note
+    ----
+    For appropriate choice of parameters see:
+        https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6549512/
+    """
+
+    # Calculate window values for easier operation
+    window_increment = int(np.ceil(window_size * window_overlap))
+    
+    # Overlapping window
+
+    win_start = 0
+    win_stop = window_size
+    n_windows = int(np.ceil((len(sig) - window_size) / window_increment)) + 1
+    se = np.empty(n_windows)
+    se_i = 0
+    while win_start < len(sig):
+        if win_stop > len(sig):
+            win_stop = len(sig)
+
+        se[se_i] = _sample_entropy(sig[int(win_start):int(win_stop)],
+                                   r, m)
+
+        if win_stop == len(sig):
+            break
+
+        win_start += window_increment
+        win_stop += window_increment
+
+        se_i += 1
+        
+    return np.max(se)
 
 
 class SampleEntropy(Method):
@@ -73,6 +131,6 @@ class SampleEntropy(Method):
             filtering treshold, recommended values: (0.1-0.25)*std
         """
 
-        super().__init__(sample_entropy, **kwargs)
+        super().__init__(compute_sample_entropy, **kwargs)
         self._event_flag = False
 
