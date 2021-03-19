@@ -16,7 +16,7 @@ import numpy as np
 
 
 @pytest.fixture(scope="module")
-def create_testing_data():
+def create_testing_artifact_data():
     """
     Creates testing data
     """
@@ -50,6 +50,5 @@ def create_testing_data():
     x = np.arange(int(n/10))
     line_noise = 1 * np.sin(2 * np.pi * 50.0 * x / fs)
     data[int(8*n/10):int(9*n/10)] = data[int(8*n/10):int(9*n/10)]+line_noise
-
 
     return data
