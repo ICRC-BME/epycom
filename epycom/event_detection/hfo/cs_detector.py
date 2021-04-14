@@ -524,6 +524,7 @@ def _sliding_snr(np_x, bp_x, fs, wind_secs):
 class CSDetector(Method):
 
     algorithm = 'CS_DETECTOR'
+    algorithm_type = 'event'
     version = '1.0.0b1'
     dtype = [('event_start', 'int32'),
              ('event_stop', 'int32'),
@@ -566,4 +567,3 @@ class CSDetector(Method):
         """
 
         super().__init__(detect_hfo_cs_beta, **kwargs)
-        self._event_flag = True

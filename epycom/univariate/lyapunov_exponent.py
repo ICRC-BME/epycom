@@ -194,6 +194,7 @@ def compute_lyapunov_exponent(data, fs=5000, dimension=5, sample_lag=None,
 class LyapunovExponent(Method):
 
     algorithm = 'LYAPUNOV_EXPONENT'
+    algorithm_type = 'univariate'
     version = '1.0.0'
     dtype = [('lyapunov_exponent', 'float32')]
 
@@ -220,4 +221,3 @@ class LyapunovExponent(Method):
         """
 
         super().__init__(compute_lyapunov_exponent, **kwargs)
-        self._event_flag = False

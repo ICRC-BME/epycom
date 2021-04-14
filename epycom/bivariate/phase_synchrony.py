@@ -56,6 +56,7 @@ def compute_phase_sync(sig):
 class PhaseSynchrony(Method):
 
     algorithm = 'PHASE_SYNCHRONY'
+    algorithm_type = 'bivariate'
     version = '1.0.0'
     dtype = [('phase_sync', 'float32')]
 
@@ -70,4 +71,3 @@ class PhaseSynchrony(Method):
         Quiroga et al. 2008
         """
         super().__init__(compute_phase_sync, **kwargs)
-        self._event_flag = False

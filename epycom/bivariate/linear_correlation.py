@@ -72,6 +72,7 @@ def compute_lincorr(sig, lag=0, lag_step=0):
 class LinearCorrelation(Method):
 
     algorithm = 'LINEAR_CORRELATION'
+    algorithm_type = 'bivariate'
     version = '1.0.0'
     dtype = [('max_corr', 'float32'),
              ('tau', 'float32')]
@@ -96,4 +97,3 @@ class LinearCorrelation(Method):
 
         """
         super().__init__(compute_lincorr, **kwargs)
-        self._event_flag = False

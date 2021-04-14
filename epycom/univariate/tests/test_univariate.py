@@ -14,7 +14,14 @@ from epycom.univariate import (SignalStats,
                                PowerSpectralEntropy,
                                LyapunovExponent,
                                HjorthMobility,
-                               HjorthComplexity)
+                               HjorthComplexity,
+                               ModulationIndex,
+                               MeanVectorLength,
+                               PhaseLockingValue,
+                               AutoregressiveResidualModulation,
+                               ShannonEntropy,
+                               ApproximateEntropy,
+                               SampleEntropy)
 
 
 def test_signal_stats(create_testing_data, benchmark):
@@ -74,3 +81,81 @@ def test_hjorth_complexity(create_testing_data, benchmark):
                                   5000,
                                   n_cores=2)
     assert isclose(res[0][0], 2.27728, abs_tol=10e-6)
+
+
+def test_modulation_index(create_testing_data, benchmark):
+    compute_instance = ModulationIndex()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0], 8.5572385e-05, abs_tol=10e-6)
+
+
+def test_mean_vector_length(create_testing_data, benchmark):
+    compute_instance = MeanVectorLength(fs=5000)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data, 50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0].real, 0.0028143270205255025, abs_tol=10e-6)
+    assert isclose(res[0][0].imag, -0.007199158327167037, abs_tol=10e-6)
+
+
+def test_phase_locking_value(create_testing_data, benchmark):
+    compute_instance = PhaseLockingValue(fs=5000)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data,
+                    50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0].real, 0.002708, abs_tol=10e-6)
+    assert isclose(res[0][0].imag, -0.007152732373542481, abs_tol=10e-6)
+
+
+def test_arr(create_testing_data, benchmark):
+    compute_instance = AutoregressiveResidualModulation(fs=5000)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data,
+                    50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0],  0.03176254325984886, abs_tol=10e-6)
+
+
+def test_shannon_entropy(create_testing_data, benchmark):
+    compute_instance = ShannonEntropy()
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data,
+                    50000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0], 15.609560, abs_tol=10e-6)
+
+
+def test_approximate_entropy(create_testing_data, benchmark):
+    compute_instance = ApproximateEntropy(r=0.223)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data,
+                    5000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0], 0.5096618, abs_tol=10e-6)
+
+
+def test_sample_entropy(create_testing_data, benchmark):
+    compute_instance = SampleEntropy(r=0.402)
+    res = benchmark(compute_instance.run_windowed,
+                    create_testing_data,
+                    5000)
+    compute_instance.run_windowed(create_testing_data,
+                                  5000,
+                                  n_cores=2)
+    assert isclose(res[0][0], 2.7327428, abs_tol=10e-6)
+

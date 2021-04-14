@@ -86,6 +86,7 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
 class PhaseLagIndex(Method):
 
     algorithm = 'PHASE_LAG_INDEX'
+    algorithm_type = 'bivariate'
     version = '1.0.0'
     dtype = [('pli', 'float32'),
              ('tau', 'float32')]
@@ -118,4 +119,3 @@ class PhaseLagIndex(Method):
         # TODO: print out warnings if conditions for warnings in doc string
 
         super().__init__(compute_pli, **kwargs)
-        self._event_flag = False

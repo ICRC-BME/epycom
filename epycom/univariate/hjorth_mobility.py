@@ -50,6 +50,7 @@ def compute_hjorth_mobility(signal, fs=5000):
 class HjorthMobility(Method):
 
     algorithm = 'HJORTH_MOBILITY'
+    algorithm_type = 'univariate'
     version = '1.0.0'
     dtype = [('hjorth_mobility', 'float32')]
 
@@ -64,4 +65,3 @@ class HjorthMobility(Method):
         """
 
         super().__init__(compute_hjorth_mobility, **kwargs)
-        self._event_flag = False

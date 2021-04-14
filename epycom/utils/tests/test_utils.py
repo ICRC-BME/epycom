@@ -12,7 +12,8 @@ import numpy as np
 # Local imports
 from epycom.utils.data_operations import (calculate_absolute_samples,
                                           create_output_df,
-                                          add_metadata)
+                                          add_metadata,
+                                          process_matrix)
 from epycom.utils.signal_transforms import (compute_hilbert_envelope,
                                             compute_hilbert_power,
                                             compute_teager_energy,
@@ -36,7 +37,6 @@ def test_create_output_df():
     expected_columns = ['event_start', 'event_stop', 'field_1', 'field_2']
     assert expected_columns == list(res_df.columns)
 
-
 def test_add_metadata():
     res_df = create_output_df(fields={'field_1': np.int32,
                                       'field_2': np.float})
@@ -46,7 +46,16 @@ def test_add_metadata():
     expected_columns = ['event_start', 'event_stop',
                         'field_1', 'field_2', 'field_3', 'field_4']
     assert expected_columns == list(res_df.columns)
-
+    
+def test_process_matrix():
+    matrix = np.zeros([5,5], dtype=[('test_val', 'float'),
+                                ('win_idx', 'int')])
+    matrix[:, 2]['test_val'] = 10
+    matrix['win_idx'] = np.arange(5)
+    
+    count_sig = process_matrix(matrix, 'test_val', th_percentile, 95)
+    
+    assert np.all(np.array([0, 0, 1, 0, 0]) == count_sig)
 
 # ----- Signal transforms -----
 def test_compute_hilbert_envelope(create_testing_data):

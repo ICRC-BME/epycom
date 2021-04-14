@@ -55,6 +55,7 @@ def compute_spect_multp(sig):
 class SpectraMultiplication(Method):
 
     algorithm = 'SPECTRA_MULTIPLICATION'
+    algorithm_type = 'bivariate'
     version = '1.0.0'
     dtype = [('sm_mean', 'float32'),
              ('sm_std', 'float32')]
@@ -65,4 +66,3 @@ class SpectraMultiplication(Method):
         domain where the mean and std is calculated
         """
         super().__init__(compute_spect_multp, **kwargs)
-        self._event_flag = False

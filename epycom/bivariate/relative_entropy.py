@@ -57,6 +57,7 @@ def compute_relative_entropy(sig):
 class RelativeEntropy(Method):
 
     algorithm = 'RELATIVE_ENTROPY'
+    algorithm_type = 'bivariate'
     version = '1.0.0'
     dtype = [('ren', 'float32')]
 
@@ -68,4 +69,3 @@ class RelativeEntropy(Method):
         """
 
         super().__init__(compute_relative_entropy, **kwargs)
-        self._event_flag = False
