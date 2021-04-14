@@ -6,7 +6,7 @@
 from setuptools import setup, find_packages
 
 setup(name='epycom',
-      version='0.0b1',
+      version='0.0b2',
       install_requires=['numpy', 'scipy', 'pandas', 'scikit-learn'],
       description='Package for EEG data processing and analysis',
       url='',
