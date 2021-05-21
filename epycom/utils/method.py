@@ -71,7 +71,7 @@ class Method:
         result: float | tuple
             Result of the compute function
         """
-                
+
         if np.any(data == np.nan):
             warnings.warn(RuntimeWarning,
                           "Detected NaN in time series returning NaN")
@@ -140,12 +140,20 @@ class Method:
         window_idxs['event_start'] = (np.arange(n_windows) * window_size
                                       - np.arange(n_windows) * overlap_samp)
         window_idxs['event_stop'] = window_idxs['event_start'] + window_size
+
+        self._check_params()
+
         if n_cores is None or mp.cpu_count() < 2:
             results = []
-
+            skipped_wins = []
             for wi, idx in enumerate(window_idxs):
-                # self._params['win_idx'] = wi
-                self._check_params()
+
+                # Mark skipped windows to correct index array later on
+                if np.any(np.isnan(np.squeeze(data.T[idx[0]: idx[1]]))):
+                    if self.algorithm_type != 'event':
+                        skipped_wins.append(wi)
+                        continue
+
                 if data.ndim > 1:
                     results.append(self.compute(data[:, idx[0]: idx[1]]))
                 else:
@@ -158,9 +166,15 @@ class Method:
             pool = mp.Pool(n_cores)
 
             chunks = []
+            skipped_wins = []
             for wi, idx in enumerate(window_idxs):
-                # self._params['win_idx'] = wi
-                self._check_params()
+
+                # Mark skipped windows to correct index array later on
+                if np.any(np.isnan(np.squeeze(data.T[idx[0]: idx[1]]))):
+                    if self.algorithm_type != 'event':
+                        skipped_wins.append(wi)
+                        continue
+
                 if data.ndim > 1:
                     chunks.append(data[:, idx[0]: idx[1]])
                 else:
@@ -168,12 +182,6 @@ class Method:
 
             results = pool.map(self.compute, chunks)
             pool.close()
-
-        # If win_idx exists in params it means we do not have to add it
-        # if 'win_idx' in self._params.keys():
-        #     results = list(chain.from_iterable(results))
-        #     return np.array(results, self.dtype+[('win_idx', 'int32')])
-        # else:
 
         if self.algorithm_type == 'event':
             results_sizes = np.empty(n_windows, np.int32)
@@ -185,8 +193,9 @@ class Method:
             results = list(chain.from_iterable(results))
 
         else:
-            idx_arr = np.empty(n_windows, [('win_idx', 'int32')])
-            idx_arr[:] = np.arange(n_windows)
+            idx_arr = np.empty(n_windows-len(skipped_wins), [('win_idx',
+                                                              'int32')])
+            idx_arr[:] = np.delete(np.arange(n_windows), skipped_wins)
 
         return rfn.merge_arrays([np.array(results, self.dtype),
                                  idx_arr],

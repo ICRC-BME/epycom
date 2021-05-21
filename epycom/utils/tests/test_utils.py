@@ -33,15 +33,15 @@ def test_calculate_absolure_samples():
 
 def test_create_output_df():
     res_df = create_output_df(fields={'field_1': np.int32,
-                                      'field_2': np.float})
+                                      'field_2': np.float32})
     expected_columns = ['event_start', 'event_stop', 'field_1', 'field_2']
     assert expected_columns == list(res_df.columns)
 
 def test_add_metadata():
     res_df = create_output_df(fields={'field_1': np.int32,
-                                      'field_2': np.float})
+                                      'field_2': np.float32})
     metadata = {'field_3': np.int32,
-                'field_4': np.float}
+                'field_4': np.float32}
     add_metadata(res_df, metadata)
     expected_columns = ['event_start', 'event_stop',
                         'field_1', 'field_2', 'field_3', 'field_4']
