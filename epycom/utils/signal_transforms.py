@@ -179,7 +179,7 @@ def compute_stockwell_transform(signal, fs, min_freq, max_freq, f_fs=1,
     samp_rate = 1 / fs
 
     t = np.linspace(0, len(signal) - 1, len(signal)) * samp_rate
-    spe_nelements = np.int(np.ceil((max_freq - min_freq + 1) / f_fs))
+    spe_nelements = np.int32(np.ceil((max_freq - min_freq + 1) / f_fs))
     f = (min_freq + np.linspace(0, spe_nelements - 1, spe_nelements)
          * f_fs) / (samp_rate * len(signal))
 
