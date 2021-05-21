@@ -32,4 +32,9 @@ def create_testing_data():
         y = np.sin(2 * np.pi * freq * x / fs)
         data += y
 
+    nan_data = np.zeros(n)
+    nan_data[:] = np.nan
+
+    data = np.concatenate([data, nan_data])
+
     return data

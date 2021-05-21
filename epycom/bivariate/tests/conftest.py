@@ -34,4 +34,9 @@ def create_testing_data():
         y = np.cos(2 * np.pi * freq * x / fs)
         data[1] += y
 
+    nan_data = np.zeros([2, n])
+    nan_data[:] = np.nan
+
+    data = np.concatenate([data, nan_data], axis=1)
+
     return data
