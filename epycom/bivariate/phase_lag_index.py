@@ -14,7 +14,7 @@ from scipy.signal import hilbert
 from ..utils.method import Method
 
 
-def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
+def compute_pli(sig, lag=500, lag_step=50):
     """
     Phase-lag index.
 
@@ -62,6 +62,7 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
     sig2_w = sig[1]
 
     sig1_wl = sig1_w[lag:len(sig1_w) - lag]
+    sig1_ph = np.unwrap(np.angle(hilbert(sig1_wl)))
 
     pli_temp = []
     for i in range(0, nstep_lag + 1):
@@ -70,7 +71,6 @@ def compute_pli(sig, lag=500, lag_step=50, win=0, win_step=0):
 
         sig2_wl = sig2_w[ind1:ind2]
 
-        sig1_ph = np.unwrap(np.angle(hilbert(sig1_wl)))
         sig2_ph = np.unwrap(np.angle(hilbert(sig2_wl)))
         dph = sig1_ph - sig2_ph
 

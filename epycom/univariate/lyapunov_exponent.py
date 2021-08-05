@@ -94,13 +94,13 @@ def compute_lyapunov_exponent(data, fs=5000, dimension=5, sample_lag=None,
         Signal to analyze, time series (array, int, float).
     fs: float
         Sampling frequency
-    dimensions: int
+    dimension: int
         Number of dimensions to compute lyapunov exponent.
     sample_lag: int
         Delay in samples used for coordination extraction.
     trajectory_len: int
         Number of points on divergence trajectory.
-    min_tstep: int
+    min_tsep: int
         Nearest neighbors have temporal separation greater then min_tstep.
 
     Returns

@@ -16,3 +16,11 @@ def try_jit_decorate(jit_kwargs):
         return jit(**jit_kwargs)
     except ImportError:
         return lambda x: x
+
+
+def try_njit_decorate(jit_args, jit_kwargs):
+    try:
+        from numba import njit
+        return njit(jit_args, **jit_kwargs)
+    except ImportError:
+        return lambda x: x

@@ -10,6 +10,7 @@ from multiprocessing import Pool
 import numpy as np
 from scipy.signal import butter, filtfilt, hilbert
 from scipy.special import gammaincinv
+from numba import njit
 
 # Local imports
 from ...utils.method import Method
@@ -52,8 +53,7 @@ from ...utils.method import Method
 #    return
 
 
-def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
-                       low_fc=None, high_fc=None, mp=1):
+def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4., mp=1):
     """
     Beta version of CS detection algorithm. Which was used to develop
     CS detection algorithm.
@@ -68,10 +68,6 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         Threshold for detection between 0 and 1 (Default=0.1)
     cycs_per_detect: float
         Minimal number of cycles threshold. (Default=4)
-    low_fc: float
-        Low cut-off frequency
-    high_fc: float
-        High cut-off frequency
     mp: int
         Number of cores to use (def = 1)
 
@@ -209,7 +205,6 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
     else:
         event_cnt = 0
         for band_idx in range(n_bands):
-
             args = [sig, fs, norm_coefs, band_idx, cycs_per_detect, threshold,
                     edge_thresh, constants]
 
@@ -258,9 +253,25 @@ def detect_hfo_cs_beta(sig, fs=5000, threshold=0.1, cycs_per_detect=4.,
         work_pool.close()
     return output
 
+
 # =============================================================================
 # Subfunctions
 # =============================================================================
+
+@njit("f8[:](f8[:], f8[:], f8[:])")
+def calculate_prods(x_prods, x_fhoms, x_amps):
+    """
+    Speeds up the _detect_band() fucntion
+    """
+    for i in range(len(x_prods)):
+        if (x_fhoms[i] < 0) and (x_amps[i] < 0):
+            x_prods[i] = -x_prods[i]
+        if x_prods[i] < 0:
+            x_prods[i] = -np.sqrt(-x_prods[i])
+        else:
+            x_prods[i] = np.sqrt(x_prods[i])
+
+    return x_prods
 
 
 def _detect_band(args):
@@ -282,13 +293,14 @@ def _detect_band(args):
 
     wind_secs = cycs_per_detect / constants['BAND_CENTERS'][band_idx]
 
-    b, a = butter(3, [(constants['BAND_CENTERS'][band_idx] / 4) / (fs / 2),
-                      constants['BAND_STOPS'][band_idx] / (fs / 2)],
-                  'bandpass')
+    [b, a] = butter(3, [(constants['BAND_CENTERS'][band_idx] / 4) / (fs / 2),
+                        constants['BAND_STOPS'][band_idx] / (fs / 2)],
+                    'bandpass')
+
     bp_x = filtfilt(b, a, x)
-    b, a = butter(3, [constants['BAND_STARTS'][band_idx] / (fs / 2),
-                      constants['BAND_STOPS'][band_idx] / (fs / 2)],
-                  'bandpass')
+    [b, a] = butter(3, [constants['BAND_STARTS'][band_idx] / (fs / 2),
+                        constants['BAND_STOPS'][band_idx] / (fs / 2)],
+                    'bandpass')
     np_x = filtfilt(b, a, x)
 
     h = hilbert(np_x)
@@ -301,8 +313,8 @@ def _detect_band(args):
     x_fhoms = _sliding_snr(np_x_f, bp_x_f, fs, wind_secs)
 
     # Normalization
-#    p1 = round(stat_win_samp / 3)
-#    p2 = round((2 * stat_win_samp) / 3)
+    #    p1 = round(stat_win_samp / 3)
+    #    p2 = round((2 * stat_win_samp) / 3)
     sort_arr = np.sort(x_amps)
     amp_dev = (sort_arr[norm_coefs[1]] - sort_arr[norm_coefs[0]]) / 2
     x_amps = (x_amps - sort_arr[norm_coefs[1]]) / amp_dev
@@ -310,14 +322,8 @@ def _detect_band(args):
     fhom_dev = (sort_arr[norm_coefs[1]] - sort_arr[norm_coefs[0]]) / 2
     x_fhoms = (x_fhoms - sort_arr[norm_coefs[1]]) / fhom_dev
 
-    x_prods = x_amps * x_fhoms
-    for i in range(len(x_prods)):
-        if (x_fhoms[i] < 0) and (x_amps[i] < 0):
-            x_prods[i] = -x_prods[i]
-        if x_prods[i] < 0:
-            x_prods[i] = -np.sqrt(-x_prods[i])
-        else:
-            x_prods[i] = np.sqrt(x_prods[i])
+    # Calculate prods with jitted function
+    x_prods = calculate_prods(x_amps * x_fhoms, x_amps, x_fhoms)
 
     sort_arr = np.sort(x_prods)
     prod_dev = (sort_arr[norm_coefs[1]] - sort_arr[norm_coefs[0]]) / 2
@@ -475,14 +481,14 @@ def _sliding_snr(np_x, bp_x, fs, wind_secs):
 
     if wind % 2:
         np_x_sqr_diffs = np_x_sqr[2 * half_wind:] - \
-            np_x_sqr[1:-((2 * half_wind) - 1)]
+                         np_x_sqr[1:-((2 * half_wind) - 1)]
         np_bp_x_diff_sqr_diffs = np_bp_x_diff_sqr[
-            2 * half_wind:] - np_bp_x_diff_sqr[1:-((2 * half_wind) - 1)]
+                                 2 * half_wind:] - np_bp_x_diff_sqr[1:-((2 * half_wind) - 1)]
     else:
         np_x_sqr_diffs = np_x_sqr[2 * half_wind -
                                   1:-1] - np_x_sqr[1:-((2 * half_wind) - 1)]
         np_bp_x_diff_sqr_diffs = np_bp_x_diff_sqr[
-            2 * half_wind - 1:-1] - np_bp_x_diff_sqr[1:-((2 * half_wind) - 1)]
+                                 2 * half_wind - 1:-1] - np_bp_x_diff_sqr[1:-((2 * half_wind) - 1)]
 
     npxx_sig = np.cumsum(np_x_sqr_diffs) + npxx
     bpxx_sig = np.cumsum(np_bp_x_diff_sqr_diffs) + bpxx
@@ -490,29 +496,29 @@ def _sliding_snr(np_x, bp_x, fs, wind_secs):
     snr[half_wind:-half_wind] = npxx_sig / bpxx_sig
 
     # ----- Original code -----
-#     Slide the window
-#    i = 1
-#    for k in range(int(N-wind+1)):
-#        p = k + wind - 1
-#
-#        #Beginning of the window
-#        t1 = np_x[i]
-#        npxx = npxx - (t1 * t1)
-#        t2 = bp_x[i] - t1
-#        bpxx = bpxx - (t2 * t2)
-#
-#        #End of the window
-#        t1 = np_x[p]
-#        npxx = npxx + (t1 * t1)
-#        t2 = bp_x[p] - t1
-#        bpxx = bpxx + (t2 * t2)
-#
-#        np_rms = np.sqrt(float(npxx) / wind) # Unnecessary to divide by wind
-#        bp_rms = np.sqrt(float(bpxx) / wind)
-#
-#        snr[k+half_wind] = (np_rms/bp_rms)
-#
-#        i += 1
+    #     Slide the window
+    #    i = 1
+    #    for k in range(int(N-wind+1)):
+    #        p = k + wind - 1
+    #
+    #        #Beginning of the window
+    #        t1 = np_x[i]
+    #        npxx = npxx - (t1 * t1)
+    #        t2 = bp_x[i] - t1
+    #        bpxx = bpxx - (t2 * t2)
+    #
+    #        #End of the window
+    #        t1 = np_x[p]
+    #        npxx = npxx + (t1 * t1)
+    #        t2 = bp_x[p] - t1
+    #        bpxx = bpxx + (t2 * t2)
+    #
+    #        np_rms = np.sqrt(float(npxx) / wind) # Unnecessary to divide by wind
+    #        bp_rms = np.sqrt(float(bpxx) / wind)
+    #
+    #        snr[k+half_wind] = (np_rms/bp_rms)
+    #
+    #        i += 1
     # ----- -----
 
     # Fill in the end
@@ -522,7 +528,6 @@ def _sliding_snr(np_x, bp_x, fs, wind_secs):
 
 
 class CSDetector(Method):
-
     algorithm = 'CS_DETECTOR'
     algorithm_type = 'event'
     version = '1.0.0b1'
