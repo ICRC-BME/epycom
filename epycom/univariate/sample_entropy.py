@@ -5,109 +5,89 @@
 
 # Third pary imports
 import numpy as np
+from numba import njit
 
 # Local imports
 from ..utils.method import Method
-from ..utils.tools import try_jit_decorate
 
 
-def _sample_entropy(sig, r, m=2):
+@njit('f8(f8[:], f8[:])', cache=True)
+def _maxdist(x_i, x_j):
+    dist = 0
+
+    leni = len(x_i)
+    lenj = len(x_j)
+
+    if leni < lenj:
+        n = len(x_i)
+    else:
+        n = len(x_j)
+
+    for ua in range(n):
+        if abs(x_i[ua] - x_j[ua]) > dist:
+            dist = abs(x_i[ua] - x_j[ua])
+
+    return dist
+
+
+@njit('f8(f8[:], f8, i8)', cache=True)
+def compute_sample_entropy(sig, r, m):
     """
-    Function to compute sample entropy
+       Function to compute sample entropy
 
-    Parameters
-    ----------
-    sig: np.ndarray
-        1D signal
-    r: np.float64
-        filtering treshold, recommended values: (0.1-0.25)*np.nanstd(sig)
-    m: int
-        window length of compared run of data, recommended (2-8)
+       Parameters
+       ----------
+       sig: np.ndarray
+           1D signal
+       r: np.float64
+           filtering treshold, recommended values: (0.1-0.25)*np.nanstd(sig)
+       m: int
+           window length of compared run of data, recommended (2-8)
 
-    Returns
-    -------
-    entropy: numpy.float64 (computed as -np.log(A / B))
-        sample entropy
+       Returns
+       -------
+       entropy: numpy.float64 (computed as -np.log(A / B))
+           approximate entropy
+
+       Example
+       -------
+       sample_entropy = approximate_entropy(data, 0.1*np.nanstd(data))
     """
-
-    # sig = np.array(sig)
     N = sig.shape[0]
 
-    # Split time series and save all templates of length m
-    x = np.array([sig[i: i + m] for i in range(N - m)])
-    x_B = np.array([sig[i: i + m] for i in range(N - m + 1)])
+    xlen = N - m
+    x = np.full((xlen, m), np.inf, dtype='float64')
+    for i in range(N - m):
+        x[i] = sig[i: i + m]
+
+    x_B = np.full((xlen + 1, m), np.inf, dtype='float64')
+    for i in range(xlen + 1):
+        x_B[i] = sig[i: i + m]
 
     # Save all matches minus the self-match, compute B
-    B = np.sum([np.sum(np.abs(xi - x_B).max(axis=1) <= r) - 1 for xi in x])
+    B = cnt = 0
+    for x_i in x:
+        for x_j in x_B:
+            if _maxdist(x_i, x_j) <= r:
+                cnt += 1
+        B += cnt-1
+        cnt = 0
 
     # Similar for computing A
     m += 1
-    x_A = np.array([sig[i: i + m] for i in range(N - m + 1)])
+    x_A = np.full((N - m + 1, m), np.inf, dtype='float64')
+    for i in range(N - m + 1):
+        x_A[i] = sig[i: i + m]
 
-    A = np.sum([np.sum(np.abs(xj - x_A).max(axis=1) <= r) - 1 for xj in x_A])
+    A = cnt = 0
+    for x_i in x_A:
+        for x_j in x_A:
+            if _maxdist(x_i, x_j) <= r:
+                cnt += 1
+        A += cnt - 1
+        cnt = 0
 
     return -np.log(A / B)
-
-
-def compute_sample_entropy(sig, r, m=2, window_size=100,
-                           window_overlap=1):
-    """
-    Function to compute sample entropy
-
-    Parameters
-    ----------
-    sig: np.ndarray
-        1D signal
-    r: np.float64
-        filtering treshold, recommended values: (0.1-0.25)*np.nanstd(sig)
-    m: int
-        window length of compared run of data, recommended (2-8)
-    window_size: int
-        Sliding window size in samples
-    window_overlap: float
-        Fraction of the window overlap (0 to 1)
-
-    Returns
-    -------
-    entro: numpy.float64
-        maximum sample entropy in the given statistical window
-
-    Example
-    -------
-    sample_entropy = compute_sample_entropy(data, 0.1*np.nanstd(data))
-    
-    Note
-    ----
-    For appropriate choice of parameters see:
-        https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6549512/
-    """
-
-    # Calculate window values for easier operation
-    window_increment = int(np.ceil(window_size * window_overlap))
-    
-    # Overlapping window
-
-    win_start = 0
-    win_stop = window_size
-    n_windows = int(np.ceil((len(sig) - window_size) / window_increment)) + 1
-    se = np.empty(n_windows)
-    se_i = 0
-    while win_start < len(sig):
-        if win_stop > len(sig):
-            win_stop = len(sig)
-
-        se[se_i] = _sample_entropy(sig[int(win_start):int(win_stop)],
-                                   r, m)
-
-        if win_stop == len(sig):
-            break
-
-        win_start += window_increment
-        win_stop += window_increment
-
-        se_i += 1
-        
-    return np.max(se)
 
 
 class SampleEntropy(Method):
@@ -133,4 +113,3 @@ class SampleEntropy(Method):
 
         super().__init__(compute_sample_entropy, **kwargs)
         self._event_flag = False
-

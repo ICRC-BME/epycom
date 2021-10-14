@@ -16,7 +16,6 @@ from ...utils.method import Method
 
 
 def detect_hfo_hilbert(sig, fs, low_fc, high_fc, threshold=3,
-                       window=10, window_overlap=0,
                        band_spacing='linear', num_bands=300,
                        cyc_th=1, gap_th=1, mp=1):
     """
@@ -165,10 +164,10 @@ def _band_z_score_detect(args):
     tdetects = []
     thresh_sig = np.zeros(len(x_cond), dtype='bool')
 
-    b, a = butter(3, bot / (fs / 2), 'highpass')
+    [b, a] = butter(3, bot / (fs / 2), 'highpass')
     fx = filtfilt(b, a, x_cond)
 
-    b, a = butter(3, top / (fs / 2), 'lowpass')
+    [b, a] = butter(3, top / (fs / 2), 'lowpass')
     fx = filtfilt(b, a, fx)
 
     # Compute the z-scores
@@ -227,7 +226,7 @@ def _run_detect_branch(detects, det_idx, HFO_outline):
 
     # Create a subset for next band
     next_band_idcs = np.where(detects[:, 0] == detects[det_idx, 0] + 1)
-    if not len((next_band_idcs)[0]):
+    if not len(next_band_idcs[0]):
         # No detects in band - finish the branch
         detects[det_idx, 0] = 0  # Set the processed detect to zero
         return HFO_outline

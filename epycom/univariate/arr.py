@@ -9,14 +9,13 @@
 import numpy as np
 import scipy
 from math import nan
+from numba import njit
 
 # Local imports
 from ..utils.method import Method
 
-import numpy as np
-import warnings
 
-
+@njit("i8(i8)", cache=True)
 def _next_regular(target):
     """
     Find the next regular number greater than or equal to target.
@@ -41,7 +40,7 @@ def _next_regular(target):
     if not (target & (target - 1)):
         return target
 
-    match = float("inf")  # Anything found will be smaller
+    match = np.inf  # Anything found will be smaller
     p5 = 1
     while p5 < target:
         p35 = p5
@@ -50,7 +49,12 @@ def _next_regular(target):
             # (quotient = ceil(target / p35))
             quotient = -(-target // p35)
             # Quickly find next power of 2 >= quotient
-            p2 = 2 ** ((quotient - 1).bit_length())
+            exp = 1
+            num = quotient - 1
+            while num // 2 != 0:
+                num = num // 2
+                exp += 1
+            p2 = 2 ** exp  # ((quotient - 1).bit_length())
 
             N = p2 * p35
             if N == target:
@@ -70,7 +74,7 @@ def _next_regular(target):
     return match
 
 
-def _acovf(x, adjusted=False, demean=True, fft=None, missing="none", nlag=None):
+def _acovf(x):
     """
     Estimate autocovariances. Recoded from statsmodels package.
 
@@ -78,29 +82,6 @@ def _acovf(x, adjusted=False, demean=True, fft=None, missing="none", nlag=None):
     ----------
     x : array_like
         Time series data. Must be 1d.
-    adjusted : bool, default False
-        If True, then denominators is n-k, otherwise n.
-    demean : bool, default True
-        If True, then subtract the mean x from each element of x.
-    fft : bool, default None
-        If True, use FFT convolution.  This method should be preferred
-        for long time series.
-    missing : str, default "none"
-        A string in ["none", "raise", "conservative", "drop"] specifying how
-        the NaNs are to be treated. "none" performs no checks. "raise" raises
-        an exception if NaN values are found. "drop" removes the missing
-        observations and then estimates the autocovariances treating the
-        non-missing as contiguous. "conservative" computes the autocovariance
-        using nan-ops so that nans are removed when computing the mean
-        and cross-products that are used to estimate the autocovariance.
-        When using "conservative", n is set to the number of non-missing
-        observations.
-    nlag : {int, None}, default None
-        Limit the number of autocovariances returned.  Size of returned
-        array is nlag + 1.  Setting nlag when fft is False uses a simple,
-        direct estimator of the autocovariances that only computes the first
-        nlag + 1 values. This can be much faster when the time series is long
-        and only a small number of autocovariances are needed.
 
     Returns
     -------
@@ -113,117 +94,16 @@ def _acovf(x, adjusted=False, demean=True, fft=None, missing="none", nlag=None):
            and amplitude modulation. Sankhya: The Indian Journal of
            Statistics, Series A, pp.383-392.
     """
-    if not isinstance(adjusted, bool):
-        raise ValueError("adjusted must be of type bool")
-    if not isinstance(demean, bool):
-        raise ValueError("demean must be of type bool")
-    if fft is not None and not isinstance(adjusted, bool):
-        raise ValueError("fft must be of type bool")
-    if not isinstance(demean, str) or demean not in ["none", "raise",
-                                                     "conservative", "drop"]:
-        raise ValueError('demean must be on of the following strings ["none", \
-                         "raise","conservative", "drop"]')
-    if nlag is not None and not isinstance(nlag, bool):
-        raise ValueError("nlag must be of type int")
-
-    if fft is None:
-        msg = (
-            "fft=True will become the default after the release of the 0.12 "
-            "release of statsmodels. To suppress this warning, explicitly "
-            "set fft=False."
-        )
-        warnings.warn(msg, FutureWarning)
-        fft = False
-
-    if not isinstance(x, np.array) and x.ndim != 1:
-        raise ValueError("x must be a onedimensional array")
-
-    missing = missing.lower()
-    if missing == "none":
-        deal_with_masked = False
-    else:
-        deal_with_masked = np.any(np.isnan(x))
-    if deal_with_masked:
-        if missing == "raise":
-            raise RuntimeError("NaNs were encountered in the data")
-        notmask_bool = ~np.isnan(x)  # bool
-        if missing == "conservative":
-            # Must copy for thread safety
-            x = x.copy()
-            x[~notmask_bool] = 0
-        else:  # "drop"
-            x = x[notmask_bool]  # copies non-missing
-        notmask_int = notmask_bool.astype(int)  # int
-
-    if demean and deal_with_masked:
-        # whether "drop" or "conservative":
-        xo = x - x.sum() / notmask_int.sum()
-        if missing == "conservative":
-            xo[~notmask_bool] = 0
-    elif demean:
-        xo = x - x.mean()
-    else:
-        xo = x
+    xo = x - x.mean()
 
     n = len(x)
-    lag_len = nlag
-    if nlag is None:
-        lag_len = n - 1
-    elif nlag > n - 1:
-        raise ValueError("nlag must be smaller than nobs - 1")
+    d = n * np.ones(2 * n - 1)
 
-    if not fft and nlag is not None:
-        acov = np.empty(lag_len + 1)
-        acov[0] = xo.dot(xo)
-        for i in range(lag_len):
-            acov[i + 1] = xo[i + 1 :].dot(xo[: -(i + 1)])
-        if not deal_with_masked or missing == "drop":
-            if adjusted:
-                acov /= n - np.arange(lag_len + 1)
-            else:
-                acov /= n
-        else:
-            if adjusted:
-                divisor = np.empty(lag_len + 1, dtype=np.int64)
-                divisor[0] = notmask_int.sum()
-                for i in range(lag_len):
-                    divisor[i + 1] = notmask_int[i + 1 :].dot(
-                        notmask_int[: -(i + 1)]
-                    )
-                divisor[divisor == 0] = 1
-                acov /= divisor
-            else:  # biased, missing data but npt "drop"
-                acov /= notmask_int.sum()
-        return acov
-
-    if adjusted and deal_with_masked and missing == "conservative":
-        d = np.correlate(notmask_int, notmask_int, "full")
-        d[d == 0] = 1
-    elif adjusted:
-        xi = np.arange(1, n + 1)
-        d = np.hstack((xi, xi[:-1][::-1]))
-    elif deal_with_masked:
-        # biased and NaNs given and ("drop" or "conservative")
-        d = notmask_int.sum() * np.ones(2 * n - 1)
-    else:  # biased and no NaNs or missing=="none"
-        d = n * np.ones(2 * n - 1)
-
-    if fft:
-        nobs = len(xo)
-        n = _next_regular(2 * nobs + 1)
-        Frf = np.fft.fft(xo, n=n)
-        acov = np.fft.ifft(Frf * np.conjugate(Frf))[:nobs] / d[nobs - 1 :]
-        acov = acov.real
-    else:
-        acov = np.correlate(xo, xo, "full")[n - 1 :] / d[n - 1 :]
-
-    if nlag is not None:
-        # Copy to allow gc of full array rather than view
-        return acov[: lag_len + 1].copy()
+    acov = np.correlate(xo, xo, "full")[n - 1:] / d[n - 1:]
     return acov
 
 
-def _corrmtx(x_input, m, method='autocorrelation'):
+def _corrmtx(x, m):
     """
     Correlation matrix
 
@@ -239,19 +119,6 @@ def _corrmtx(x_input, m, method='autocorrelation'):
         the maximum lag (Depending on the choice of the method, the 
         correlation matrix has different sizes, but the number of rows is
         always m+1)
-    method: string
-        'autocorrelation'- (default) X is the (n+m)-by-(m+1) rectangular
-            Toeplitz matrix derived using prewindowed and postwindowed data.
-        'prewindowed'- X is the n-by-(m+1) rectangular Toeplitz matrix derived
-            using prewindowed data only.
-        'postwindowed'- X is the n-by-(m+1) rectangular Toeplitz matrix that
-            derived using postwindowed data only.
-        'covariance'- X is the (n-m)-by-(m+1) rectangular Toeplitz matrix
-            derived using nonwindowed data.
-        'modified'- X is the 2(n-m)-by-(m+1) modified rectangular Toeplitz
-            matrix that generates an autocorrelation estimate for the length n
-            data vector x, derived using forward and backward prediction error
-             estimates.
 
     Returns
     -------
@@ -264,80 +131,10 @@ def _corrmtx(x_input, m, method='autocorrelation'):
         https://pyspectrum.readthedocs.io/en/latest/#
     """
 
-    valid_methods = ['autocorrelation', 'prewindowed', 'postwindowed',
-                     'covariance', 'modified']
-    if method not in valid_methods:
-        raise ValueError("Invalid method. Try one of %s" % valid_methods)
-
     from scipy.linalg import toeplitz
+    N = len(x)
 
-    # create the relevant matrices that will be useful to create
-    # the correlation matrices
-    N = len(x_input)
-
-    # FIXME:do we need a copy ?
-    if isinstance(x_input, list):
-        x = np.array(x_input)
-    else:
-        x = x_input.copy()
-
-    if x.dtype == complex:
-        complex_type = True
-    else:
-        complex_type = False
-
-    # Compute the Lp, Up and Tp matrices according to the requested method
-    if method in ['autocorrelation', 'prewindowed']:
-        Lp = toeplitz(x[0:m], [0] * (m + 1))
-    Tp = toeplitz(x[m:N], x[m::-1])
-    if method in ['autocorrelation', 'postwindowed']:
-        Up = toeplitz([0] * (m + 1), np.insert(x[N:N - m - 1:-1], 0, 0))
-
-    # Create the output matrix
-    if method == 'autocorrelation':
-        if complex_type:
-            C = np.zeros((N + m, m + 1), dtype=complex)
-        else:
-            C = np.zeros((N + m, m + 1))
-        for i in range(0, m):
-            C[i] = Lp[i]
-        for i in range(m, N):
-            C[i] = Tp[i - m]
-        for i in range(N, N + m):
-            C[i] = Up[i - N]
-    elif method == 'prewindowed':
-        if complex_type:
-            C = np.zeros((N, m + 1), dtype=complex)
-        else:
-            C = np.zeros((N, m + 1))
-
-        for i in range(0, m):
-            C[i] = Lp[i]
-        for i in range(m, N):
-            C[i] = Tp[i - m]
-    elif method == 'postwindowed':
-        if complex_type:
-            C = np.zeros((N, m + 1), dtype=complex)
-        else:
-            C = np.zeros((N, m + 1))
-        for i in range(0, N - m):
-            C[i] = Tp[i]
-        for i in range(N - m, N):
-            C[i] = Up[i - N + m]
-    elif method == 'covariance':
-        return Tp
-    elif method == 'modified':
-        if complex_type:
-            C = np.zeros((2 * (N - m), m + 1), dtype=complex)
-        else:
-            C = np.zeros((2 * (N - m), m + 1))
-        for i in range(0, N - m):
-            C[i] = Tp[i]
-        Tp = np.fliplr(Tp.conj())
-        for i in range(N - m, 2 * (N - m)):
-            C[i] = Tp[i - N + m]
-
-    return C
+    return toeplitz(x[m:N], x[m::-1])
 
 
 def _arcovar(x, order):
@@ -366,7 +163,7 @@ def _arcovar(x, order):
         https://pyspectrum.readthedocs.io/en/latest/#
     """
 
-    X = _corrmtx(x, order, 'covariance')
+    X = _corrmtx(x, order)
     Xc = np.array(X[:, 1:])
     X1 = np.array(X[:, 0])
 
@@ -385,64 +182,53 @@ def _arcovar(x, order):
     return a, e
 
 
-def _arburg(X, order, criteria=None):
+@njit("f8(f8[:], i8)", cache=True)
+def _arburg(x, order):
     """
-    Estimate the complex autoregressive parameters by the Burg algorithm.
+      Estimate the complex autoregressive parameters by the Burg algorithm.
 
-    .. math:: x(n) = qrt{(v}) e(n) + sum_{k=1}^{P+1} a(k) x(n-k)
+      .. math:: x(n) = qrt{(v}) e(n) + sum_{k=1}^{P+1} a(k) x(n-k)
 
-    Parameters
-    ----------
-    X: numpy.ndarray
-      array of complex data samples (length N)
-    order: int
-        order of autoregressive process (0<order<N)
-    criteria:
-            select a criteria to automatically select the order
+      Parameters
+      ----------
+      x: numpy.ndarray
+        array of complex data samples (length N)
+      order: int
+          order of autoregressive process (0<order<N)
 
-    Returns
-    -------
-    a: numpy.ndarray
-        Array of complex autoregressive parameters A(1) to A(order).
-        First value (unity) is not included !!
-    rho: numpy.float64
-        Real variable representing driving noise variance (mean square
-        of residual noise) from the whitening operation of the Burg filter.
-    ref: numpy.ndarray
-        reflection coefficients defining the filter of the model
+      Returns
+      -------
+      rho: numpy.float64
+          Real variable representing driving noise variance (mean square
+          of residual noise) from the whitening operation of the Burg filter.
 
-    Example
-    -------
-    _, v, _ = arburg(sig, n)
-    """
-
-    if order <= 0.:
-        raise ValueError("order must be > 0")
-
-    if order > len(X):
-        raise ValueError("order must be less than length input - 2")
-
-    x = np.array(X)
+      Example
+      -------
+      v = arburg(sig, n)
+      """
     N = len(x)
 
     # Initialisation
     # ------ rho, den
-    rho = sum(abs(x) ** 2.) / float(N)  # Eq 8.21 [Marple]_
+    rho = np.sum(np.abs(x) ** 2.) / float(N)  # Eq 8.21 [Marple]_
     den = rho * 2. * N
 
-    # p = 0
-    a = np.zeros(0, dtype=complex)
-    ref = np.zeros(0, dtype=complex)
-    ef = x.astype(complex)
-    eb = x.astype(complex)
+    a = np.zeros(order)
+
+    ef = x.copy()
+    eb = x.copy()
+
     temp = 1.
+
     #   Main recursion
-
     for k in range(0, order):
-
+        num = 0
         # calculate the next order reflection coefficient Eq 8.14 Marple
-        num = sum([ef[j] * eb[j - 1].conjugate() for j in range(k + 1, N)])
-        den = temp * den - abs(ef[k]) ** 2 - abs(eb[N - 1]) ** 2
+        # numo = np.sum([ef[j] * eb[j - 1].conjugate() for j in range(k + 1, N)])
+        for j in range(k + 1, N):
+            num += ef[j] * eb[j - 1]
+
+        den = temp * den - np.abs(ef[k]) ** 2 - np.abs(eb[N - 1]) ** 2
         kp = -2. * num / den  # eq 8.14
 
         temp = 1. - abs(kp) ** 2.
@@ -451,10 +237,14 @@ def _arburg(X, order, criteria=None):
         # this should be after the criteria
         rho = new_rho
         if rho <= 0:
-            raise ValueError("Found a negative value (expected positive strictly) %s. Decrease the order" % rho)
+            return -1
 
-        a.resize(a.size + 1, refcheck=False)
-        a[k] = kp
+        a_new = np.zeros(a.size + 1)
+        for i in range(len(a)):
+            a_new[i] = a[i]
+
+        # a.resize(a.size + 1, refcheck=False)
+        a_new[k] = kp
         if k == 0:
             for j in range(N - 1, k, -1):
                 save2 = ef[j]
@@ -465,10 +255,10 @@ def _arburg(X, order, criteria=None):
             # update the AR coeff
             khalf = int((k + 1) // 2)
             for j in range(0, khalf):
-                ap = a[j]  # previous value
-                a[j] = ap + kp * a[k - j - 1].conjugate()  # Eq. (8.2)
+                ap = a_new[j]  # previous value
+                a_new[j] = ap + kp * a_new[k - j - 1]  # Eq. (8.2)
                 if j != k - j - 1:
-                    a[k - j - 1] = a[k - j - 1] + kp * ap.conjugate()  # Eq. (8.2)
+                    a_new[k - j - 1] = a_new[k - j - 1] + kp * ap  # Eq. (8.2)
 
             # update the prediction error
             for j in range(N - 1, k, -1):
@@ -476,11 +266,7 @@ def _arburg(X, order, criteria=None):
                 ef[j] = save2 + kp * eb[j - 1]  # Eq. (8.7)
                 eb[j] = eb[j - 1] + kp.conjugate() * save2
 
-        # save the reflection coefficient
-        ref.resize(ref.size + 1, refcheck=False)
-        ref[k] = kp
-
-    return a, rho, ref
+    return rho
 
 
 def _extract_poles(sig, n):
@@ -509,7 +295,7 @@ def _extract_poles(sig, n):
 
     coeffs, _ = _arcovar(sig, n)  # complex forward linear prediction coefficients
     coeffs = np.append([1], coeffs)
-    _, v, _ = _arburg(sig, n)  # noise variance (mean square of residual noise)
+    v = _arburg(sig, n)  # noise variance (mean square of residual noise)
     roots = np.roots(coeffs)
     R = np.transpose(roots * np.ones([roots.shape[0], roots.shape[0]]))
     R = R - np.transpose(R) + np.identity(roots.shape[0])
@@ -549,7 +335,7 @@ def _embed(sig, tau, nED, step=1):
     tau1 = tau
     if tau < 0:
         tau = np.abs(tau)
-        XC = _acovf(sig, fft=False)  # estimated autocovariances
+        XC = _acovf(sig)  # estimated autocovariances
         XC = XC[1:]
         L = np.where((np.sign(XC[0:-1]) - np.sign(XC[1:])) != 0)  # indices of zero crossing
         if (len(L) > 0) and L[0] < tau:
@@ -661,7 +447,6 @@ def compute_arr(sig, fs):
 
 
 class AutoregressiveResidualModulation(Method):
-
     algorithm = 'AUTOROGRESSIVE_RESIDUAL_MODULATION'
     algorithm_type = 'univariate'
     version = '1.0.0'

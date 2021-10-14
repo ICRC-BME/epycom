@@ -139,23 +139,23 @@ def test_shannon_entropy(create_testing_data, benchmark):
 
 
 def test_approximate_entropy(create_testing_data, benchmark):
-    compute_instance = ApproximateEntropy(r=0.223)
+    compute_instance = ApproximateEntropy(r=0.223, m=2)
     res = benchmark(compute_instance.run_windowed,
                     create_testing_data,
                     5000)
     compute_instance.run_windowed(create_testing_data,
                                   5000,
                                   n_cores=2)
-    assert isclose(res[0][0], 0.5096618, abs_tol=10e-6)
+    assert isclose(res[0][0], 1.9743676, abs_tol=10e-6)
 
 
 def test_sample_entropy(create_testing_data, benchmark):
-    compute_instance = SampleEntropy(r=0.402)
+    compute_instance = SampleEntropy(r=0.402, m=2)
     res = benchmark(compute_instance.run_windowed,
                     create_testing_data,
                     5000)
     compute_instance.run_windowed(create_testing_data,
                                   5000,
                                   n_cores=2)
-    assert isclose(res[0][0], 2.7327428, abs_tol=10e-6)
+    assert isclose(res[0][0], 1.7763994, abs_tol=10e-6)
 
